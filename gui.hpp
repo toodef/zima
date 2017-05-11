@@ -1,9 +1,6 @@
 #pragma once
 
 #include <QtWidgets/QtWidgets>
-#include <QtCore/QCoreApplication>
-//#include <QtCore/QCommandLineParser>
-//#include <QtCore/QCommandLineOption>
 
 class gui_t: public QMainWindow
 {
