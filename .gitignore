@@ -1,0 +1,5 @@
+.idea
+cmake-*
+CMakeFiles
+*.tif
+*.png
