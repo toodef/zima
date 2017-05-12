@@ -1,9 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QtOpenGL/QtOpenGL>
-#include <QGraphicsView>
-#include <QFrame>
+#include <QGLWidget>
 
 #include <cstdint>
 
@@ -18,7 +16,7 @@ public:
    virtual ~gui_t();
 
 private:
-   //renderer_t renderer_;
+   renderer_t * renderer_;
 
-   QGraphicsView * graphics_view_;
+   QGLWidget * gl_widget_;
 };

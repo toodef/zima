@@ -1,16 +1,22 @@
+#include <QtWidgets/QVBoxLayout>
 #include "gui.hpp"
 
 gui_t::gui_t( QWidget * parent ) : QMainWindow(parent)
-
 {
+   setWindowTitle("Tif Viewer");
+
    resize(1000, 600);
 
-   graphics_view_ = new QGraphicsView(this);
-   QGLWidget * viewport = new QGLWidget(QGLFormat(QGL::SampleBuffers));
-   graphics_view_->setViewport(viewport);
-   graphics_view_->setRenderHint(QPainter::Antialiasing, false);
+   QWidget * central_widget = new QWidget;
+   QVBoxLayout * central_layout = new QVBoxLayout;
 
-   this->setCentralWidget(graphics_view_);
+   gl_widget_ = new QGLWidget();
+   central_layout->addWidget(gl_widget_);
+
+   central_widget->setLayout(central_layout);
+   setCentralWidget(central_widget);
+
+   renderer_ = new renderer_t(this);
 }
 
 gui_t::~gui_t()
