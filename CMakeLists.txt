@@ -8,7 +8,7 @@ set(SOURCE_FILES main.cpp image/parser/parser.cpp gui.cpp gui.hpp renderer/rende
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
 
 include_directories(${Qt5_INCLUDES})
 add_definitions(${Qt5_DEFINITIONS})
@@ -25,5 +25,5 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-target_link_libraries(${PROJECT_NAME} gdal_i Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(${PROJECT_NAME} gdal_i Qt5::Core Qt5::Widgets Qt5::OpenGL)
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
