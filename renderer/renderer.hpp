@@ -1,15 +1,18 @@
-//
-// Created by anton on 11-May-17.
-//
+#pragma once
 
-#ifndef TIF_VIEWER_RENDERER_HPP
-#define TIF_VIEWER_RENDERER_HPP
+#include <QtWidgets/QMainWindow>
+#include <QGLWidget>
 
+#include <iostream>
 
-class renderer
+class renderer_t : public QGLWidget
 {
+   Q_OBJECT
 
+public:
+   renderer_t( QWidget * parent = 0 );
+
+   void * display();
+private:
+   QOpenGLContext * gl_context_;
 };
-
-
-#endif //TIF_VIEWER_RENDERER_HPP
