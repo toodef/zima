@@ -1,9 +1,11 @@
 #pragma once
 
-#include <QtWidgets/QtWidgets>
-#include <QtCore/QCoreApplication>
-//#include <QtCore/QCommandLineParser>
-//#include <QtCore/QCommandLineOption>
+#include <QMainWindow>
+#include <QGLWidget>
+
+#include <cstdint>
+
+#include "renderer/renderer.hpp"
 
 class gui_t: public QMainWindow
 {
@@ -12,4 +14,9 @@ class gui_t: public QMainWindow
 public:
    gui_t( QWidget * parent = 0 );
    virtual ~gui_t();
+
+private:
+   renderer_t * renderer_;
+
+   QGLWidget * gl_widget_;
 };

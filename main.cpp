@@ -1,24 +1,17 @@
-#include <iostream>
+#include <QApplication>
 
-#include "gdal_priv.h"
-#include "cpl_conv.h"
+#include "gui.hpp"
 
+//C:\Qt\5.8\msvc2015_64\lib
 
-int main()
+int main( int argc, char ** argv )
 {
-   GDALDataset *poDataset;
-   GDALAllRegister();
-   poDataset = (GDALDataset *) GDALOpen("a.tif", GA_ReadOnly);
-   if (poDataset == NULL) {
-      std::cout << "Nakonetcta!!!" << std::endl;
-   }
+   QApplication app(argc, argv);
+   app.setAttribute( Qt::AA_UseDesktopOpenGL );
+
+   gui_t window;
+
+   window.show();
+
+   return app.exec();
 }
-//#include <iostream>
-//
-////#include <QtWidgets/QtWidgets>
-//
-//int main()
-//{
-//    std::cout << "Hello, World!" << std::endl;
-//    return 0;
-//}
