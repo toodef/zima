@@ -2,6 +2,10 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QGLWidget>
+#include <QOpenGLBuffer>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLShader>
+#include <QOpenGLTexture>
 
 #include <iostream>
 
@@ -10,44 +14,46 @@ class renderer_t : public QGLWidget
    Q_OBJECT
 
 public:
-   renderer_t( QWidget * parent = 0 );
-
-private slots:
-   void advanceGears();
+   explicit renderer_t( QWidget * parent = 0 );
+   ~renderer_t();
 
 protected:
-   void initializeGL();
-   void paintGL();
-   void resizeGL(int width, int height);
-   void mousePressEvent(QMouseEvent *event);
-   void mouseMoveEvent(QMouseEvent *event);
-
-public slots:
-   void setXRotation(int angle);
-   void setYRotation(int angle);
-   void setZRotation(int angle);
-
-signals:
-   void xRotationChanged(int angle);
-   void yRotationChanged(int angle);
-   void zRotationChanged(int angle);
+   void initializeGL() override;
+   void paintGL() override;
+   void resizeGL(int width, int height) override;
 
 private:
-   //tmp
-   GLuint makeGear(const GLfloat *reflectance, GLdouble innerRadius,
-                               GLdouble outerRadius, GLdouble thickness,
-                               GLdouble toothSize, GLint toothCount);
-   void normalizeAngle(int *angle);
-   void drawGear(GLuint gear, GLdouble dx, GLdouble dy, GLdouble dz,
-                 GLdouble angle);
+   QOpenGLVertexArrayObject * vertex_array_obj_;
+   QOpenGLBuffer * vertex_buffer_, * index_buffer_;
 
-   GLuint gear1;
-   GLuint gear2;
-   GLuint gear3;
-   int xRot;
-   int yRot;
-   int zRot;
-   int gear1Rot;
+   QOpenGLShader * vertex_shader_, * fragment_shader_;
+   QOpenGLShaderProgram program_;
 
-   QPoint lastPos;
+   QOpenGLTexture * texture_;
+
+   // Shader sources
+   const std::string vertex_shader_src_ = "#version 150 core \n"
+      "in vec2 position; "
+      "in vec3 color; "
+      "in vec2 texcoord; "
+      "out vec3 Color; "
+      "out vec2 Texcoord; "
+      "void main() "
+      "{ "
+      "   Color = color; "
+      "   Texcoord = texcoord; "
+      "   gl_Position = vec4(position, 0.0, 1.0); "
+      "}";
+
+   const std::string fragment_shader_src_ = "#version 150 core\n"
+      "in vec3 Color;"
+      "in vec2 Texcoord;"
+      "out vec4 outColor;"
+      "uniform sampler2D tex;"
+      "void main()"
+      "{"
+      "   vec4 cur_color = texture(tex, Texcoord);"
+      "   "
+      "   outColor = cur_color;"
+      "}";
 };
