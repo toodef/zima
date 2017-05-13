@@ -27,3 +27,13 @@ image_info_t image_t::get_info()
 
    return info;
 }
+
+float image_t::get_min() const
+{
+   return parser_->min();
+}
+
+float image_t::get_max() const
+{
+   return parser_->max();
+}

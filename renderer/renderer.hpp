@@ -26,6 +26,11 @@ public:
 
    void set_image( std::shared_ptr<image_t> const & image );
 
+public slots:
+   void set_min_threshold(float min);
+   void set_min_threshold(int min);
+   void set_max_threshold(float max);
+
 protected:
    void initializeGL() override;
    void paintGL() override;
@@ -41,6 +46,8 @@ private:
    std::shared_ptr<QOpenGLTexture> texture_;
 
    std::shared_ptr<image_t> image_;
+
+   float min_, max_;
 
    // Shader sources
    const std::string vertex_shader_src_ = "#version 330\n"

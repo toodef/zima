@@ -16,6 +16,9 @@ public:
    std::shared_ptr<float> & get_image();
    image_info_t get_info();
 
+   float get_min() const;
+   float get_max() const;
+
 private:
    std::shared_ptr<float> data_;
 

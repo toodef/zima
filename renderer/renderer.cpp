@@ -67,8 +67,7 @@ void renderer_t::paintGL()
    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   float min = 0.5;
-   program_->setUniformValue("min", min);
+   program_->setUniformValue("min", min_);
 
    glDrawArrays(GL_QUADS, 0, 4);
 }
@@ -81,4 +80,19 @@ void renderer_t::resizeGL(int width, int height)
 
 renderer_t::~renderer_t()
 {
+}
+
+void renderer_t::set_min_threshold(float min)
+{
+   min_ = min;
+}
+
+void renderer_t::set_min_threshold(int min)
+{
+   min_ = (float)min;
+}
+
+void renderer_t::set_max_threshold(float max)
+{
+   max_ = max;
 }
