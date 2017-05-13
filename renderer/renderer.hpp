@@ -6,6 +6,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShader>
 #include <QOpenGLTexture>
+#include <QOpenGLFramebufferObject>
 
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -29,35 +30,36 @@ protected:
 private:
    QOpenGLVertexArrayObject * vertex_array_obj_;
    QOpenGLBuffer * vertex_buffer_, * index_buffer_;
+   QOpenGLFramebufferObject * frame_buffer_;
 
    QOpenGLShader * vertex_shader_, * fragment_shader_;
    QOpenGLShaderProgram program_;
 
    QOpenGLTexture * texture_;
 
-   // Shader sources
-   const std::string vertex_shader_src_ = "#version 330 core \n"
-      "layout(location = 0) in vec2 position; "
-//      "in vec3 color; "
-      "layout(location = 2) in vec2 texcoord; "
-//      "out vec3 Color; "
-      "out vec2 Texcoord; "
-      "void main() "
-      "{ "
-//      "   Color = color; "
-      "   Texcoord = texcoord; "
-      "   gl_Position = vec4(position, 0.0, 1.0); "
-      "}";
+   float * image_;
 
-   const std::string fragment_shader_src_ = "#version 330 core\n"
-//      "in vec3 Color;"
+   // Shader sources
+   const std::string vertex_shader_src_ = "#version 330\n"
+         "layout(location = 0) in vec2 position; "
+         "layout(location = 2) in vec2 texcoord; "
+         "out vec2 Texcoord; "
+         "void main() "
+         "{ "
+         "   Texcoord = texcoord; "
+         "   gl_Position = vec4(position, 0.0, 1.0); "
+         "}";
+
+   const std::string fragment_shader_src_ = "#version 330\n"
       "in vec2 Texcoord;"
-      "out vec4 outColor;"
       "uniform sampler2D tex;"
+      "uniform float min;"
+//      "uniform float max;"
+      "out vec4 out_color;"
       "void main()"
       "{"
-      "   vec4 cur_color = texture(tex, Texcoord);"
-      "   "
-      "   outColor = cur_color;"
+      "   out_color = texture2D(tex, Texcoord);"
+      "   if (out_color.r < min)"
+      "      out_color.r = 1;"
       "}";
 };
