@@ -7,6 +7,10 @@
 #include <QOpenGLShader>
 #include <QOpenGLTexture>
 
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+
 #include <iostream>
 
 class renderer_t : public QGLWidget
@@ -32,10 +36,10 @@ private:
    QOpenGLTexture * texture_;
 
    // Shader sources
-   const std::string vertex_shader_src_ = "#version 150 core \n"
-      "in vec2 position; "
+   const std::string vertex_shader_src_ = "#version 330 core \n"
+      "layout(location = 0) in vec2 position; "
 //      "in vec3 color; "
-      "in vec2 texcoord; "
+      "layout(location = 2) in vec2 texcoord; "
 //      "out vec3 Color; "
       "out vec2 Texcoord; "
       "void main() "
@@ -45,7 +49,7 @@ private:
       "   gl_Position = vec4(position, 0.0, 1.0); "
       "}";
 
-   const std::string fragment_shader_src_ = "#version 150 core\n"
+   const std::string fragment_shader_src_ = "#version 330 core\n"
 //      "in vec3 Color;"
       "in vec2 Texcoord;"
       "out vec4 outColor;"

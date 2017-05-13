@@ -17,11 +17,11 @@ void renderer_t::initializeGL()
    vertex_buffer_->bind();
 
    GLfloat vertices[] = {
-         //  Position Texcoords
-         -1.f,  1.f, 0.0f, 0.0f, // Top-left
-         1.f,  1.f, 1.0f, 0.0f, // Top-right
-         1.f, -1.f, 1.0f, 1.0f, // Bottom-right
-         -1.f, -1.f, 0.0f, 1.0f  // Bottom-left
+         //Position   Texcoords
+         -1.f, -1.f,  0.f, 1.f, // bottom-left  - 0
+          1.f, -1.f,  1.f, 1.f, // bottom-right - 1
+          1.f,  1.f,  1.f, 0.f, // top-right    - 2
+         -1.f,  1.f,  0.f, 0.f, // top-left     - 3
    };
 
    vertex_buffer_->allocate(vertices, sizeof(vertices));
@@ -32,8 +32,7 @@ void renderer_t::initializeGL()
    index_buffer_->bind();
 
    GLuint elements[] = {
-         3, 0, 1,
-         3, 1, 2
+         0, 1, 2, 3
    };
 
    index_buffer_->allocate(elements, sizeof(elements));
@@ -54,15 +53,13 @@ void renderer_t::initializeGL()
 
    program_.enableAttributeArray(0);
    program_.setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(float) * 4);
-   program_.enableAttributeArray(1);
-   program_.setAttributeBuffer(1, GL_FLOAT, sizeof(float) * 2, 2, sizeof(float) * 4);
-//   program_.enableAttributeArray(2);
-//   program_.setAttributeBuffer(2, GL_FLOAT, sizeof(float) * 5, 2, sizeof(float) * 7);
+   program_.enableAttributeArray(2);
+   program_.setAttributeBuffer(2, GL_FLOAT, sizeof(float) * 2, 2, sizeof(float) * 4);
 
 //   parser_t parser("sample.tif");
 //   float ** image = parser.parse();
 
-   texture_ = new QOpenGLTexture(QImage("sample.png"));
+   texture_ = new QOpenGLTexture(QImage("Lenna.png"));
    texture_->bind();
 }
 
@@ -71,7 +68,13 @@ void renderer_t::paintGL()
    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+   index_buffer_->bind();
+   vertex_buffer_->bind();
+   vertex_array_obj_->bind();
+   program_.bind();
+   texture_->bind();
+
+   glDrawArrays(GL_QUADS, 0, 4);
 }
 
 void renderer_t::resizeGL(int width, int height)
