@@ -14,6 +14,8 @@
 
 #include <iostream>
 
+#include <../image/image.hpp>
+
 class renderer_t : public QGLWidget
 {
    Q_OBJECT
@@ -28,16 +30,15 @@ protected:
    void resizeGL(int width, int height) override;
 
 private:
-   QOpenGLVertexArrayObject * vertex_array_obj_;
-   QOpenGLBuffer * vertex_buffer_, * index_buffer_;
-   QOpenGLFramebufferObject * frame_buffer_;
+   std::shared_ptr<QOpenGLVertexArrayObject> vertex_array_obj_;
+   std::shared_ptr<QOpenGLBuffer> vertex_buffer_, index_buffer_;
 
-   QOpenGLShader * vertex_shader_, * fragment_shader_;
-   QOpenGLShaderProgram program_;
+   std::shared_ptr<QOpenGLShader> vertex_shader_, fragment_shader_;
+   std::shared_ptr<QOpenGLShaderProgram> program_;
 
-   QOpenGLTexture * texture_;
+   std::shared_ptr<QOpenGLTexture> texture_;
 
-   float * image_;
+   std::shared_ptr<image_t> image_;
 
    // Shader sources
    const std::string vertex_shader_src_ = "#version 330\n"

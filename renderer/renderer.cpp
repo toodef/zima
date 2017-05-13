@@ -10,11 +10,11 @@ GLuint tex;
 
 void renderer_t::initializeGL()
 {
-   vertex_array_obj_ = new QOpenGLVertexArrayObject();
+   vertex_array_obj_.reset(new QOpenGLVertexArrayObject());
    vertex_array_obj_->create();
    vertex_array_obj_->bind();
 
-   vertex_buffer_ = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+   vertex_buffer_.reset(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer));
    vertex_buffer_->create();
    vertex_buffer_->setUsagePattern(QOpenGLBuffer::StaticDraw);
    vertex_buffer_->bind();
@@ -29,7 +29,7 @@ void renderer_t::initializeGL()
 
    vertex_buffer_->allocate(vertices, sizeof(vertices));
 
-   index_buffer_ = new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
+   index_buffer_.reset(new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer));
    index_buffer_->create();
    index_buffer_->setUsagePattern(QOpenGLBuffer::StaticDraw);
    index_buffer_->bind();
@@ -42,20 +42,21 @@ void renderer_t::initializeGL()
    vertex_buffer_->bind();
    vertex_array_obj_->bind();
 
-   vertex_shader_ = new QOpenGLShader(QOpenGLShader::Vertex);
+   vertex_shader_.reset(new QOpenGLShader(QOpenGLShader::Vertex));
    vertex_shader_->compileSourceCode(vertex_shader_src_.c_str());
-   fragment_shader_ = new QOpenGLShader(QOpenGLShader::Fragment);
+   fragment_shader_.reset(new QOpenGLShader(QOpenGLShader::Fragment));
    fragment_shader_->compileSourceCode(fragment_shader_src_.c_str());
 
-   program_.addShader(vertex_shader_);
-   program_.addShader(fragment_shader_);
-   program_.link();
-   program_.bind();
+   program_.reset(new QOpenGLShaderProgram());
+   program_->addShader(vertex_shader_.get());
+   program_->addShader(fragment_shader_.get());
+   program_->link();
+   program_->bind();
 
-   program_.enableAttributeArray(0);
-   program_.setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(float) * 4);
-   program_.enableAttributeArray(2);
-   program_.setAttributeBuffer(2, GL_FLOAT, sizeof(float) * 2, 2, sizeof(float) * 4);
+   program_->enableAttributeArray(0);
+   program_->setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(float) * 4);
+   program_->enableAttributeArray(2);
+   program_->setAttributeBuffer(2, GL_FLOAT, sizeof(float) * 2, 2, sizeof(float) * 4);
 
    //parser_t parser("sample.tif");
 //   image_ = parser.parse();
@@ -82,7 +83,7 @@ void renderer_t::initializeGL()
 //   frame_buffer_->release();
 
 //   texture_ = new QOpenGLTexture(QImage((uchar*)image_, x_size_, y_size_, sizeof(float) * x_size_, QImage::Format_RGB32));
-   texture_ = new QOpenGLTexture(QImage("Lenna.png"));
+   texture_.reset(new QOpenGLTexture(QImage("Lenna.png")));
    texture_->bind();
 }
 
@@ -100,7 +101,7 @@ void renderer_t::paintGL()
    float min = 0.5;
 //   float max = 1590;
 //
-   program_.setUniformValue("min", min);
+   program_->setUniformValue("min", min);
 //   program_.setUniformValue("max", max);
 
 //   glBindTexture(GL_TEXTURE_2D, tex);
@@ -116,6 +117,4 @@ void renderer_t::resizeGL(int width, int height)
 
 renderer_t::~renderer_t()
 {
-   vertex_buffer_->release();
-   vertex_buffer_->destroy();
 }
