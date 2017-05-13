@@ -18,7 +18,7 @@ public:
 
    float operator()( size_t i, size_t j );
 
-   float ** parse( geometry_t const & geometry = geometry_t() );
+   float * parse( geometry_t const & geometry = geometry_t() );
 
    size_t width() const;
    size_t height() const;

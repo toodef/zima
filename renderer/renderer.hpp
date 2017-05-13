@@ -24,6 +24,8 @@ public:
    explicit renderer_t( QWidget * parent = 0 );
    ~renderer_t();
 
+   void set_image( std::shared_ptr<image_t> const & image );
+
 protected:
    void initializeGL() override;
    void paintGL() override;

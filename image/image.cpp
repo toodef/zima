@@ -15,3 +15,15 @@ std::shared_ptr<float> & image_t::get_image()
 image_t::~image_t()
 {
 }
+
+image_info_t image_t::get_info()
+{
+   image_info_t info;
+
+   info.width = parser_->width();
+   info.height = parser_->height();
+   info.min_val = parser_->min();
+   info.max_val = parser_->max();
+
+   return info;
+}
