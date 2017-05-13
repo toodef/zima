@@ -79,7 +79,8 @@ void renderer_t::paintGL()
 
 void renderer_t::resizeGL(int width, int height)
 {
-   QGLWidget::resizeGL(width, height);
+   int side = qMin(width, height);
+   glViewport((width - side) / 2, (height - side) / 2, side, side);
 }
 
 renderer_t::~renderer_t()
