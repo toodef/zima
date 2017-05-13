@@ -18,10 +18,10 @@ public:
 
    float operator()( size_t i, size_t j );
 
-   float parse( geometry_t const & geometry );
+   float ** parse( geometry_t const & geometry = geometry_t() );
 
 private:
    geometry_t geometry_;
 
-   GDALDataset * data_;
+   GDALDatasetH data_;
 };

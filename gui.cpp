@@ -15,7 +15,6 @@ gui_t::gui_t( QWidget * parent ) : QMainWindow(parent)
 
    central_widget->setLayout(central_layout);
    setCentralWidget(central_widget);
-
 }
 
 gui_t::~gui_t()
