@@ -3,7 +3,7 @@ project(tif_viewer)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES main.cpp image/parser/parser.cpp gui.cpp gui.hpp renderer/renderer.cpp renderer/renderer.hpp)
+set(SOURCE_FILES main.cpp image/parser/parser.cpp gui.cpp gui.hpp renderer/renderer.cpp renderer/renderer.hpp image/image.cpp)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
