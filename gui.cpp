@@ -17,6 +17,8 @@ gui_t::gui_t( QWidget * parent ) : QMainWindow(parent)
 
    image_.reset(new image_t("sample.tif"));
 
+   renderer_->set_image(image_);
+
    init_menu();
 }
 

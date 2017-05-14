@@ -20,7 +20,14 @@ public:
 private slots:
    void threshold();
 
+   void set_min(int val);
+   void set_max(int val);
+
 private:
+   std::shared_ptr<QSlider> min_slider_, max_slider_;
+
+   int min_, max_;
+
    std::shared_ptr<QAction> threshold_;
 
    std::shared_ptr<image_t> image_;

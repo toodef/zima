@@ -6,8 +6,6 @@ renderer_t::renderer_t(QWidget * parent)
 {
 }
 
-GLuint tex;
-
 void renderer_t::initializeGL()
 {
    vertex_array_obj_.reset(new QOpenGLVertexArrayObject());
@@ -58,30 +56,13 @@ void renderer_t::initializeGL()
    program_->enableAttributeArray(2);
    program_->setAttributeBuffer(2, GL_FLOAT, sizeof(float) * 2, 2, sizeof(float) * 4);
 
-   const size_t y_size = 100;
-   const size_t x_size = 100;
-
-   float image[y_size][x_size][1];
-
-   for (size_t i = 0; i < y_size; i++) {
-      for (size_t j = 0; j < x_size; j++) {
-         image[i][j][0] = 27;
-//         image[i][j][1] = 27;
-//         image[i][j][2] = 27;
-//         image[i][j][3] = 27;
-      }
-   }
-
+   GLuint tex;
    glGenTextures(1, &tex);
-
    glBindTexture(GL_TEXTURE_2D, tex);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_RED};
    glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, x_size, y_size, 0, GL_RED, GL_FLOAT, image);
-
-//   texture_.reset(new QOpenGLTexture(QImage("Lenna.png")));
-//   texture_->bind();
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, image_->get_width(), image_->get_height(), 0, GL_RED, GL_FLOAT, image_->get_image());
 }
 
 void renderer_t::paintGL()
@@ -90,6 +71,7 @@ void renderer_t::paintGL()
    glClear(GL_COLOR_BUFFER_BIT);
 
    program_->setUniformValue("min", min_);
+   program_->setUniformValue("max", max_);
 
    glDrawArrays(GL_QUADS, 0, 4);
 }
@@ -117,4 +99,11 @@ void renderer_t::set_min_threshold(int min)
 void renderer_t::set_max_threshold(float max)
 {
    max_ = max;
+}
+
+void renderer_t::set_image(std::shared_ptr<image_t> const & image)
+{
+   image_ = image;
+   min_ = image_->get_min();
+   max_ = image_->get_max();
 }

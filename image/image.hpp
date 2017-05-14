@@ -13,16 +13,17 @@ public:
    image_t( std::string const & file );
    ~image_t();
 
-   std::shared_ptr<float> & get_image();
+   float * get_image();
    image_info_t get_info();
 
    float get_min() const;
    float get_max() const;
 
-private:
-   std::shared_ptr<float> data_;
+   size_t get_width() const;
+   size_t get_height() const;
 
-   size_t height_, width_;
+private:
+   float * data_;
 
    std::shared_ptr<parser_t> parser_;
 };

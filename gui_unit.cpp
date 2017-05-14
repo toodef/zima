@@ -12,34 +12,63 @@ gui_threshold_t::gui_threshold_t( std::shared_ptr<QMenu> & parent, std::shared_p
    connect(threshold_.get(), SIGNAL(triggered()), this, SLOT(threshold()));
    parent->addAction(threshold_.get());
 
-}
-
-void gui_threshold_t::threshold()
-{
    setMinimumSize(10, 10);
    resize(120, 200);
    setWindowTitle("Threshold");
 
    QHBoxLayout *layout = new QHBoxLayout();
 
-   QSlider * min_slider = new QSlider();
-   min_slider->setMinimum((int)image_->get_min());
-   min_slider->setMaximum((int)image_->get_max());
-   connect(min_slider, SIGNAL(valueChanged(int)), renderer_.get(), SLOT(set_min_threshold(int)));
-   layout->addWidget(min_slider);
+   min_ = (int)image_->get_min();
+   max_ = (int)image_->get_max();
 
-   QSlider * max_slider = new QSlider();
-   max_slider->setMinimum((int)image_->get_min());
-   max_slider->setMaximum((int)image_->get_max());
-   max_slider->setValue((int)image_->get_max());
-   layout->addWidget(max_slider);
+   min_slider_.reset(new QSlider());
+   min_slider_->setMinimum(min_);
+   min_slider_->setMaximum(max_);
+   connect(min_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_min(int)));
+   layout->addWidget(min_slider_.get());
+
+   max_slider_.reset(new QSlider());
+   max_slider_->setMinimum(min_);
+   max_slider_->setMaximum(max_);
+   max_slider_->setValue((int)image_->get_max());
+   connect(max_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_max(int)));
+   layout->addWidget(max_slider_.get());
    setLayout(layout);
+}
 
+void gui_threshold_t::threshold()
+{
    show();
 }
 
 gui_threshold_t::~gui_threshold_t()
 {
+}
+
+void gui_threshold_t::set_min(int val)
+{
+   if (val >= max_) {
+      min_ = max_ - 1;
+      min_slider_->setValue(min_);
+   }
+   else
+      min_ = val;
+
+   renderer_->set_min_threshold(min_);
+   renderer_->update();
+}
+
+void gui_threshold_t::set_max(int val)
+{
+   if (val <= min_) {
+      max_ = min_ + 1;
+      max_slider_->setValue(max_);
+   }
+   else
+      max_ = val;
+
+   renderer_->set_max_threshold(max_);
+   renderer_->update();
 }
 
 gui_info_t::gui_info_t(std::shared_ptr<QMenu> &parent, std::shared_ptr<image_t> image) : image_(image)
