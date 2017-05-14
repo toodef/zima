@@ -6,6 +6,7 @@
 #include <QResizeEvent>
 
 #include <memory>
+#include <QtWidgets/QFileDialog>
 
 #include "renderer/renderer.hpp"
 #include "image/image.hpp"
@@ -15,15 +16,20 @@ class gui_threshold_t : public QWidget
    Q_OBJECT
 
 public:
-   explicit gui_threshold_t( std::shared_ptr<QMenu> & parent, std::shared_ptr<image_t> image, std::shared_ptr<renderer_t> renderer );
+   explicit gui_threshold_t( std::shared_ptr<QMenu> & parent, std::shared_ptr<renderer_t> renderer );
    ~gui_threshold_t() override;
+
+   void set_image(std::shared_ptr<image_t> const & image);
 
 private slots:
    void set_min(int val);
    void set_max(int val);
 
 private:
-   void resizeEvent(QResizeEvent * event);
+   void resizeEvent(QResizeEvent * event) override;
+
+   void init_menu(std::shared_ptr<QMenu> & parent);
+   void init_window();
 
    std::shared_ptr<QSlider> min_slider_, max_slider_;
 
@@ -44,7 +50,9 @@ class gui_info_t : public QTableWidget
    Q_OBJECT
 
 public:
-   gui_info_t(std::shared_ptr<QMenu> & parent, std::shared_ptr<image_t> image);
+   gui_info_t(std::shared_ptr<QMenu> & parent);
+
+   void set_image( std::shared_ptr<image_t> const & image );
 
 private slots:
    void file_info();
@@ -53,4 +61,21 @@ private:
    std::shared_ptr<QAction> file_info_;
 
    std::shared_ptr<image_t> image_;
+};
+
+class gui_open_file_t : public QFileDialog
+{
+   Q_OBJECT
+
+public:
+   explicit gui_open_file_t( std::shared_ptr<QMenu> & parent );
+
+signals:
+   void file_selected( QString const & file );
+
+private slots:
+   void get_file( QStringList const & files );
+
+private:
+   std::shared_ptr<QAction> open_file_;
 };

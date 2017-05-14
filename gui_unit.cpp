@@ -3,39 +3,13 @@
 #include <QtWidgets/QHeaderView>
 #include "gui_unit.hpp"
 
-gui_threshold_t::gui_threshold_t( std::shared_ptr<QMenu> & parent, std::shared_ptr<image_t> image, std::shared_ptr<renderer_t> renderer ):
-     image_(image)
-   , renderer_(renderer)
+gui_threshold_t::gui_threshold_t( std::shared_ptr<QMenu> & parent, std::shared_ptr<renderer_t> renderer ):
+     renderer_(renderer)
    , min_slider_val_(0)
    , max_slider_val_(1)
    , resize_mode_(false)
 {
-   threshold_.reset(new QAction("Threshold"));
-   threshold_->setShortcut(tr("Ctrl+T"));
-   connect(threshold_.get(), SIGNAL(triggered()), this, SLOT(show()));
-   parent->addAction(threshold_.get());
-
-   setMinimumSize(10, 10);
-   setMinimumSize(120, 200);
-   setWindowTitle("Threshold");
-
-   QHBoxLayout *layout = new QHBoxLayout();
-
-   min_ = image_->get_min();
-   max_ = image_->get_max();
-
-   min_slider_.reset(new QSlider());
-   min_slider_->setMinimum(0);
-   min_slider_->setSingleStep(1);
-   connect(min_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_min(int)));
-   layout->addWidget(min_slider_.get());
-
-   max_slider_.reset(new QSlider());
-   max_slider_->setMinimum(0);
-   max_slider_->setSingleStep(1);
-   connect(max_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_max(int)));
-   layout->addWidget(max_slider_.get());
-   setLayout(layout);
+   init_menu(parent);
 }
 
 gui_threshold_t::~gui_threshold_t()
@@ -91,7 +65,51 @@ void gui_threshold_t::resizeEvent(QResizeEvent * event)
    resize_mode_ = false;
 }
 
-gui_info_t::gui_info_t(std::shared_ptr<QMenu> &parent, std::shared_ptr<image_t> image) : image_(image)
+void gui_threshold_t::init_window()
+{
+   setMinimumSize(120, 200);
+   setWindowTitle("Threshold");
+
+   QHBoxLayout *layout = new QHBoxLayout();
+
+   min_ = image_->get_min();
+   max_ = image_->get_max();
+
+   min_slider_.reset(new QSlider());
+   min_slider_->setMinimum(0);
+   min_slider_->setSingleStep(1);
+   connect(min_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_min(int)));
+   layout->addWidget(min_slider_.get());
+
+   max_slider_.reset(new QSlider());
+   max_slider_->setMinimum(0);
+   max_slider_->setSingleStep(1);
+   connect(max_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_max(int)));
+   layout->addWidget(max_slider_.get());
+   setLayout(layout);
+
+   threshold_->setEnabled(true);
+}
+
+void gui_threshold_t::init_menu(std::shared_ptr<QMenu> & parent)
+{
+   threshold_.reset(new QAction("Threshold"));
+   threshold_->setShortcut(tr("Ctrl+T"));
+   threshold_->setEnabled(false);
+   connect(threshold_.get(), SIGNAL(triggered()), this, SLOT(show()));
+   parent->addAction(threshold_.get());
+}
+
+void gui_threshold_t::set_image(std::shared_ptr<image_t> const & image)
+{
+   if (!image)
+      return;
+
+   image_ = image;
+   init_window();
+}
+
+gui_info_t::gui_info_t(std::shared_ptr<QMenu> &parent)
 {
    file_info_.reset(new QAction("Info"));
    file_info_->setShortcut(tr("Ctrl+I"));
@@ -125,3 +143,26 @@ void gui_info_t::file_info()
    show();
 }
 
+void gui_info_t::set_image(std::shared_ptr<image_t> const &image)
+{
+   image_ = image;
+}
+
+gui_open_file_t::gui_open_file_t( std::shared_ptr<QMenu> & parent )
+{
+   setWindowTitle("Open file");
+   setNameFilter("GTiff images (*.tif)");
+   setViewMode(QFileDialog::Detail);
+
+   open_file_.reset(new QAction("Open file"));
+   open_file_->setShortcut(tr("Ctrl+O"));
+   connect(open_file_.get(), SIGNAL(triggered()), this, SLOT(show()));
+   parent->addAction(open_file_.get());
+
+   connect(this, SIGNAL(filesSelected(QStringList)), this, SLOT(get_file(QStringList)));
+}
+
+void gui_open_file_t::get_file(QStringList const & files)
+{
+   emit file_selected(files[0]);
+}
