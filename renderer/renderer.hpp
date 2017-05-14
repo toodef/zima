@@ -68,8 +68,10 @@ private:
       "out vec4 out_color;"
       "void main()"
       "{"
-      "   out_color = texture2D(tex, Texcoord);"
-      "   if (out_color.r < min)"
-      "      out_color.r = 1;"
+      "   float val = texture2D(tex, Texcoord).r;"
+      "   if (val == 27)"
+      "      out_color = vec4(1, 0, 0, 1);"
+      "   else"
+      "      out_color = vec4(0, 1, 0, 1);"
       "}";
 };
