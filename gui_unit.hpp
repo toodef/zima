@@ -16,7 +16,7 @@ class gui_threshold_t : public QWidget
    Q_OBJECT
 
 public:
-   explicit gui_threshold_t( std::shared_ptr<QMenu> & parent, std::shared_ptr<renderer_t> renderer );
+   explicit gui_threshold_t( std::shared_ptr<QMenu> const & parent, std::shared_ptr<renderer_t> const & renderer );
    ~gui_threshold_t() override;
 
    void set_image(std::shared_ptr<image_t> const & image);
@@ -28,8 +28,10 @@ private slots:
 private:
    void resizeEvent(QResizeEvent * event) override;
 
-   void init_menu(std::shared_ptr<QMenu> & parent);
+   void init_menu(std::shared_ptr<QMenu> const & parent);
    void init_window();
+
+   void update_sliders();
 
    std::shared_ptr<QSlider> min_slider_, max_slider_;
 
@@ -37,7 +39,7 @@ private:
    float min_slider_val_, max_slider_val_; // slider min and max values like part of range [0; 1]
    size_t slider_length_;
 
-   float resize_mode_; // don't change min_slider_val_ and max_slider_val_ when resizing for not to accumulate an error
+   bool resize_mode_; // don't change min_slider_val_ and max_slider_val_ when resizing for not to accumulate an error
 
    std::shared_ptr<QAction> threshold_;
 
@@ -50,7 +52,7 @@ class gui_info_t : public QTableWidget
    Q_OBJECT
 
 public:
-   gui_info_t(std::shared_ptr<QMenu> & parent);
+   explicit gui_info_t(std::shared_ptr<QMenu> const & parent);
 
    void set_image( std::shared_ptr<image_t> const & image );
 
@@ -68,7 +70,7 @@ class gui_open_file_t : public QFileDialog
    Q_OBJECT
 
 public:
-   explicit gui_open_file_t( std::shared_ptr<QMenu> & parent );
+   explicit gui_open_file_t( std::shared_ptr<QMenu> const & parent );
 
 signals:
    void file_selected( QString const & file );

@@ -22,7 +22,7 @@ class renderer_t : public QGLWidget
 
 public:
    explicit renderer_t( QWidget * parent = 0 );
-   ~renderer_t();
+   ~renderer_t() override;
 
    void set_image( std::shared_ptr<image_t> const & image );
 
@@ -40,8 +40,6 @@ private:
 
    std::shared_ptr<QOpenGLShader> vertex_shader_, fragment_shader_;
    std::shared_ptr<QOpenGLShaderProgram> program_;
-
-   std::shared_ptr<QOpenGLTexture> texture_;
 
    std::shared_ptr<image_t> image_;
 

@@ -24,8 +24,8 @@ float * parser_t::parse(const geometry_t &geometry)
 {
    GDALRasterBandH raster_band = GDALGetRasterBand(data_, 1);
 
-   x_size_ = (size_t)GDALGetRasterBandXSize(raster_band);//raster_band->GetXSize();
-   y_size_ = (size_t)GDALGetRasterBandYSize(raster_band);//raster_band->GetXSize();
+   x_size_ = (size_t)GDALGetRasterBandXSize(raster_band);
+   y_size_ = (size_t)GDALGetRasterBandYSize(raster_band);
 
    float * image = new float[x_size_ * y_size_];
 

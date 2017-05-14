@@ -2,7 +2,9 @@
 #include <QtGui/QOpenGLFramebufferObject>
 #include "renderer.hpp"
 
-renderer_t::renderer_t(QWidget * parent)
+renderer_t::renderer_t(QWidget * parent) :
+     min_(0)
+   , max_(0)
 {
 }
 
