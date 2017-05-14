@@ -91,11 +91,6 @@ void renderer_t::set_min_threshold(float min)
    min_ = min;
 }
 
-void renderer_t::set_min_threshold(int min)
-{
-   min_ = (float)min;
-}
-
 void renderer_t::set_max_threshold(float max)
 {
    max_ = max;

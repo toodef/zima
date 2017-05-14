@@ -26,9 +26,7 @@ public:
 
    void set_image( std::shared_ptr<image_t> const & image );
 
-public slots:
    void set_min_threshold(float min);
-   void set_min_threshold(int min);
    void set_max_threshold(float max);
 
 protected:

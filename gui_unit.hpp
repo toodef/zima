@@ -3,6 +3,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QTableWidget>
+#include <QResizeEvent>
 
 #include <memory>
 
@@ -15,18 +16,22 @@ class gui_threshold_t : public QWidget
 
 public:
    explicit gui_threshold_t( std::shared_ptr<QMenu> & parent, std::shared_ptr<image_t> image, std::shared_ptr<renderer_t> renderer );
-   ~gui_threshold_t();
+   ~gui_threshold_t() override;
 
 private slots:
-   void threshold();
-
    void set_min(int val);
    void set_max(int val);
 
 private:
+   void resizeEvent(QResizeEvent * event);
+
    std::shared_ptr<QSlider> min_slider_, max_slider_;
 
-   int min_, max_;
+   float min_, max_; // original min and max values
+   float min_slider_val_, max_slider_val_; // slider min and max values like part of range [0; 1]
+   size_t slider_length_;
+
+   float resize_mode_; // don't change min_slider_val_ and max_slider_val_ when resizing for not to accumulate an error
 
    std::shared_ptr<QAction> threshold_;
 
