@@ -9,7 +9,7 @@ gui_t::gui_t( int argc, char ** argv, QWidget * parent ) : QMainWindow(parent)
    QWidget * central_widget = new QWidget;
    QVBoxLayout * central_layout = new QVBoxLayout;
 
-   renderer_ .reset(new renderer_t());
+   renderer_.reset(new renderer_t());
    central_layout->addWidget(renderer_.get());
 
    central_widget->setLayout(central_layout);
@@ -64,5 +64,4 @@ void gui_t::get_file(QString const &file)
    thresh_window_->set_image(image_);
    file_info_window_->set_image(image_);
 }
-
 

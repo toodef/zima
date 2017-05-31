@@ -1,17 +1,17 @@
 #pragma once
 
-#include <QMainWindow>
-#include <QGLWidget>
-#include <QMenu>
-#include <QMenuBar>
-#include <QAction>
-#include <QFileDialog>
-#include <QWindow>
+#include <QtWidgets/QMainWindow>
+#include <QtOpenGL/QGLWidget>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QFileDialog>
+#include <QtGui/QWindow>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QTableWidget>
-#include <QHeaderView>
+#include <QtWidgets/QHeaderView>
 
 #include <cstdint>
 
@@ -31,7 +31,7 @@ private slots:
 
 private:
    void init_menu( int argc, char ** argv );
-   void closeEvent(QCloseEvent * event) override;
+   void closeEvent( QCloseEvent * event ) override;
 
    std::shared_ptr<renderer_t> renderer_;
 

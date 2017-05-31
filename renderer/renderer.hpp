@@ -1,20 +1,19 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-#include <QGLWidget>
-#include <QOpenGLBuffer>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLShader>
-#include <QOpenGLTexture>
-#include <QOpenGLFramebufferObject>
+#include <QtOpenGl/QGLWidget>
+#include <QtGui/QOpenGLBuffer>
+#include <QtGui/QOpenGLVertexArrayObject>
+#include <QtGui/QOpenGLShader>
+#include <QtGui/QOpenGLTexture>
+#include <QtGui/QOpenGLFramebufferObject>
+#include <QtGui/QWheelEvent>
 
 #include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
 
 #include <iostream>
 
-#include <../image/image.hpp>
+#include "../image/image.hpp"
 
 class renderer_t : public QGLWidget
 {
@@ -35,6 +34,36 @@ protected:
    void resizeGL(int width, int height) override;
 
 private:
+   struct frame_t{
+      frame_t();
+
+      void move( QPoint const & prev_pos, QPoint const & new_pos );
+      void scale( float scale, QPoint const & position );
+      void resize(size_t width, size_t height);
+
+      float get_left(){return left_;}
+      float get_right(){return right_;}
+      float get_top(){return top_;}
+      float get_bottom(){return bottom_;}
+
+      void calc_frame();
+
+      QVector2D center_;
+      float scale_;
+
+      float min_frame_x_, min_frame_y_;
+
+      float left_, right_, bottom_, top_;
+
+      size_t width_, height_;
+   };
+
+   void set_geometry();
+
+   void wheelEvent( QWheelEvent * event ) override;
+   void mouseMoveEvent( QMouseEvent * event ) override;
+   void mouseReleaseEvent( QMouseEvent * event ) override;
+
    std::shared_ptr<QOpenGLVertexArrayObject> vertex_array_obj_;
    std::shared_ptr<QOpenGLBuffer> vertex_buffer_, index_buffer_;
 
@@ -45,15 +74,23 @@ private:
 
    float min_, max_;
 
+   QPoint intermediate_pos_;
+
+   frame_t frame_;
+
+   float min_frame_x_, min_frame_y_;
+
+   bool is_moved_;
+
    // Shader sources
    const std::string vertex_shader_src_ = "#version 330\n"
-         "layout(location = 0) in vec2 position; "
-         "layout(location = 2) in vec2 texcoord; "
+         "layout(location = 0) in vec2 position;"
+         "layout(location = 2) in vec2 texcoord;"
          "out vec2 Texcoord; "
-         "void main() "
-         "{ "
-         "   Texcoord = texcoord; "
-         "   gl_Position = vec4(position, 0.0, 1.0); "
+         "void main()"
+         "{"
+         "   Texcoord = texcoord;"
+         "   gl_Position = vec4(position, 0.0, 1.0);"
          "}";
 
    const std::string fragment_shader_src_ = "#version 330\n"
@@ -64,12 +101,12 @@ private:
       "out vec4 out_color;"
       "void main()"
       "{"
-      "   float val = texture2D(tex, Texcoord).r;"
+      "   float val = texture(tex, Texcoord).r;"
       "   if (val < min || val > max)"
       "      out_color = vec4(0, 0, 0, 1);"
       "   else{"
       "      val = (val - min) / (max - min);"
-      "      out_color = vec4(val, val, val, 1);"
+      "      out_color = vec4(val, 1 - val, 0, 1);"
       "   }"
       "}";
 };

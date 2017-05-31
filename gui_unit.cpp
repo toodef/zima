@@ -72,6 +72,8 @@ void gui_threshold_t::init_window()
    setMinimumSize(120, 200);
    setWindowTitle("Threshold");
 
+   setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
+
    QHBoxLayout *layout = new QHBoxLayout();
 
    min_slider_.reset(new QSlider());
@@ -86,7 +88,7 @@ void gui_threshold_t::init_window()
 
 void gui_threshold_t::init_menu(std::shared_ptr<QMenu> const & parent)
 {
-   threshold_.reset(new QAction("Threshold"));
+   threshold_.reset(new QAction("Threshold", parent.get()));
    threshold_->setShortcut(tr("Ctrl+T"));
    threshold_->setEnabled(false);
    connect(threshold_.get(), SIGNAL(triggered()), this, SLOT(show()));
@@ -118,7 +120,7 @@ void gui_threshold_t::update_sliders()
 
 gui_info_t::gui_info_t(std::shared_ptr<QMenu> const & parent)
 {
-   file_info_.reset(new QAction("Info"));
+   file_info_.reset(new QAction("File info", parent.get()));
    file_info_->setShortcut(tr("Ctrl+I"));
    connect(file_info_.get(), SIGNAL(triggered()), this, SLOT(file_info()));
    parent->addAction(file_info_.get());
@@ -161,7 +163,7 @@ gui_open_file_t::gui_open_file_t( std::shared_ptr<QMenu> const & parent )
    setNameFilter("GTiff images (*.tif)");
    setViewMode(QFileDialog::Detail);
 
-   open_file_.reset(new QAction("Open file"));
+   open_file_.reset(new QAction("Open file", parent.get()));
    open_file_->setShortcut(tr("Ctrl+O"));
    connect(open_file_.get(), SIGNAL(triggered()), this, SLOT(show()));
    parent->addAction(open_file_.get());

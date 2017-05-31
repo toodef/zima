@@ -3,7 +3,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QTableWidget>
-#include <QResizeEvent>
+#include <QtGui/QResizeEvent>
 
 #include <memory>
 #include <QtWidgets/QFileDialog>
