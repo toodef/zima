@@ -18,10 +18,19 @@ public:
 
    float operator()( size_t i, size_t j );
 
-   float parse( geometry_t const & geometry );
+   float * parse( geometry_t const & geometry = geometry_t() );
+
+   size_t width() const;
+   size_t height() const;
+
+   float min();
+   float max();
 
 private:
    geometry_t geometry_;
 
-   GDALDataset * data_;
+   float min_, max_;
+   size_t x_size_, y_size_;
+
+   GDALDatasetH data_;
 };
