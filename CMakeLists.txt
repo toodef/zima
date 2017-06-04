@@ -14,8 +14,15 @@ add_definitions(${Qt5_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${Qt5_EXECUTABLE_COMPILE_FLAGS}")
 
-INCLUDE_DIRECTORIES(D:/libs/gdalwin32-1.4.1/include/)
-link_directories(D:/libs/gdal-220/lib)
+if (WIN32)
+    INCLUDE_DIRECTORIES(D:/libs/gdalwin32-1.4.1/include/)
+    link_directories(D:/libs/gdal-220/lib)
+endif(WIN32)
+
+if (UNIX)
+    INCLUDE_DIRECTORIES(/usr/include/gdal)
+    link_directories(/usr/lib)
+endif(UNIX)
 
 find_package(OpenGL REQUIRED)
 
@@ -23,7 +30,12 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-#qt5_use_modules(${PROJECT_NAME} Widgets Core OpenGL)
+target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::OpenGL)
 
-target_link_libraries(${PROJECT_NAME} gdal_i Qt5::Core Qt5::Widgets Qt5::OpenGL)
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} gdal_i)
+elseif(UNIX)
+    target_link_libraries(${PROJECT_NAME} gdal)
+endif()
+
+target_link_libraries(${PROJECT_NAME} )
