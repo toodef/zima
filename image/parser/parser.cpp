@@ -60,3 +60,8 @@ float parser_t::max()
 {
    return max_;
 }
+
+std::string parser_t::projection() const
+{
+   return GDALGetProjectionRef(data_);
+}

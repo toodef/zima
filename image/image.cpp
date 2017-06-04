@@ -24,6 +24,7 @@ image_info_t image_t::get_info()
    info.height = parser_->height();
    info.min_val = parser_->min();
    info.max_val = parser_->max();
+   info.projection_ = parser_->projection();
 
    return info;
 }

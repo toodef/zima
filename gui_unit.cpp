@@ -215,10 +215,13 @@ void gui_info_t::file_info()
    horizontalHeader()->setVisible(false);
 
    horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+   horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
    setFocusPolicy(Qt::NoFocus);
 
-   setRowCount(2);
+   setRowCount(3);
    setColumnCount(2);
 
    if (image_) {
@@ -227,6 +230,8 @@ void gui_info_t::file_info()
       setItem(0, 1, new QTableWidgetItem((std::to_string(info.width) + "x" + std::to_string(info.height)).c_str()));
       setItem(1, 0, new QTableWidgetItem("Min/Max values"));
       setItem(1, 1, new QTableWidgetItem((std::to_string(info.min_val) + "/" + std::to_string(info.max_val)).c_str()));
+      setItem(2, 0, new QTableWidgetItem("Min/Max values"));
+      setItem(2, 1, new QTableWidgetItem(info.projection_.c_str()));
    }
 
    show();

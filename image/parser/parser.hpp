@@ -18,9 +18,12 @@ public:
    float min();
    float max();
 
+   std::string projection() const;
+
 private:
    float min_, max_;
    size_t x_size_, y_size_;
+   std::string projection_;
 
    GDALDatasetH data_;
 };

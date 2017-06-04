@@ -32,4 +32,5 @@ struct image_info_t
 {
    size_t width, height;
    float min_val, max_val;
+   std::string projection_;
 };
