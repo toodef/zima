@@ -10,7 +10,7 @@ struct image_info_t;
 class image_t
 {
 public:
-   image_t( std::string const & file );
+   explicit image_t( std::string const & file );
    ~image_t();
 
    float * get_image();

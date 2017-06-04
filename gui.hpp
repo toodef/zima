@@ -23,7 +23,7 @@ class gui_t: public QMainWindow
    Q_OBJECT
 
 public:
-   explicit gui_t( int argc, char ** argv, QWidget * parent = 0 );
+   explicit gui_t( int argc, char ** argv, QWidget * parent = nullptr );
    ~gui_t() override;
 
 private slots:

@@ -72,7 +72,7 @@ void renderer_t::resizeGL( int width, int height )
 {
    glViewport(0, 0, width, height);
 
-   frame_.resize(width, height);
+   frame_.resize((size_t) width, (size_t) height);
 
    set_geometry();
 }
@@ -97,7 +97,7 @@ void renderer_t::set_image(std::shared_ptr<image_t> const & image)
    glBindTexture(GL_TEXTURE_2D, tex);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, image_->get_width(), image_->get_height(), 0, GL_RED, GL_FLOAT, image_->get_image());
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, (GLsizei) image_->get_width(), (GLsizei) image_->get_height(), 0, GL_RED, GL_FLOAT, image_->get_image());
 }
 
 void renderer_t::set_geometry()

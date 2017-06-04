@@ -15,12 +15,7 @@ parser_t::~parser_t()
 
 }
 
-float parser_t::operator ()( size_t i, size_t j )
-{
-   return 0;
-}
-
-float * parser_t::parse(const geometry_t &geometry)
+float * parser_t::parse()
 {
    GDALRasterBandH raster_band = GDALGetRasterBand(data_, 1);
 
@@ -29,7 +24,7 @@ float * parser_t::parse(const geometry_t &geometry)
 
    float * image = new float[x_size_ * y_size_];
 
-   CPLErr err = GDALRasterIO(raster_band, GF_Read, 0, 0, x_size_, y_size_, image, x_size_, y_size_, GDT_Float32, 0, 0);
+   CPLErr err = GDALRasterIO(raster_band, GF_Read, 0, 0, (int) x_size_, (int) y_size_, image, (int) x_size_, (int) y_size_, GDT_Float32, 0, 0);
 
    int got_min, got_max;
    min_ = (float)GDALGetRasterMinimum(raster_band, &got_min);

@@ -4,6 +4,11 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QTableWidget>
 #include <QtGui/QResizeEvent>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QSlider>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QLabel>
 
 #include <memory>
 #include <QtWidgets/QFileDialog>
@@ -24,6 +29,8 @@ public:
 private slots:
    void set_min(int val);
    void set_max(int val);
+   void set_min(QString const & val);
+   void set_max(QString const & val);
 
 private:
    void resizeEvent(QResizeEvent * event) override;
@@ -34,12 +41,13 @@ private:
    void update_sliders();
 
    std::shared_ptr<QSlider> min_slider_, max_slider_;
+   std::shared_ptr<QLineEdit> min_line_edit_, max_line_edit_;
 
    float min_, max_; // original min and max values
    float min_slider_val_, max_slider_val_; // slider min and max values like part of range [0; 1]
    size_t slider_length_;
 
-   bool resize_mode_; // don't change min_slider_val_ and max_slider_val_ when resizing for not to accumulate an error
+   bool no_qt_call_; // don't change min_slider_val_ and max_slider_val_ when resizing for not to accumulate an error
 
    std::shared_ptr<QAction> threshold_;
 

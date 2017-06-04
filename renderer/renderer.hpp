@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
-#include <QtOpenGl/QGLWidget>
+#include <QtOpenGL/QGLWidget>
 #include <QtGui/QOpenGLBuffer>
 #include <QtGui/QOpenGLVertexArrayObject>
 #include <QtGui/QOpenGLShader>
@@ -20,7 +20,7 @@ class renderer_t : public QGLWidget
    Q_OBJECT
 
 public:
-   explicit renderer_t( QWidget * parent = 0 );
+   explicit renderer_t( QWidget * parent = nullptr );
    ~renderer_t() override;
 
    void set_image( std::shared_ptr<image_t> const & image );

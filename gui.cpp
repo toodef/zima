@@ -6,8 +6,8 @@ gui_t::gui_t( int argc, char ** argv, QWidget * parent ) : QMainWindow(parent)
 
    resize(1000, 600);
 
-   QWidget * central_widget = new QWidget;
-   QVBoxLayout * central_layout = new QVBoxLayout;
+   auto central_widget = new QWidget;
+   auto central_layout = new QVBoxLayout;
 
    renderer_.reset(new renderer_t());
    central_layout->addWidget(renderer_.get());
@@ -18,9 +18,7 @@ gui_t::gui_t( int argc, char ** argv, QWidget * parent ) : QMainWindow(parent)
    init_menu(argc, argv);
 }
 
-gui_t::~gui_t()
-{
-}
+gui_t::~gui_t() = default;
 
 void gui_t::init_menu( int argc, char ** argv )
 {

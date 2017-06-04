@@ -1,6 +1,3 @@
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QSlider>
-#include <QtWidgets/QHeaderView>
 #include "gui_unit.hpp"
 
 gui_threshold_t::gui_threshold_t( std::shared_ptr<QMenu> const & parent, std::shared_ptr<renderer_t> const & renderer ):
@@ -10,7 +7,7 @@ gui_threshold_t::gui_threshold_t( std::shared_ptr<QMenu> const & parent, std::sh
    , slider_length_(1)
    , min_slider_val_(0)
    , max_slider_val_(1)
-   , resize_mode_(false)
+   , no_qt_call_(false)
 {
    init_menu(parent);
    init_window();
@@ -20,7 +17,7 @@ gui_threshold_t::~gui_threshold_t() = default;
 
 void gui_threshold_t::set_min(int val)
 {
-   if (resize_mode_)
+   if (no_qt_call_)
       return;
 
    min_slider_val_ = (float)val / slider_length_;
@@ -30,13 +27,17 @@ void gui_threshold_t::set_min(int val)
       min_slider_->setValue((int) (min_slider_val_ * slider_length_));
    }
 
-   renderer_->set_min_threshold(min_ + (max_ - min_) * min_slider_val_);
+   float real_val = min_ + (max_ - min_) * min_slider_val_;
+
+   min_line_edit_->setText(std::to_string(real_val).c_str());
+
+   renderer_->set_min_threshold(real_val);
    renderer_->update();
 }
 
 void gui_threshold_t::set_max(int val)
 {
-   if (resize_mode_)
+   if (no_qt_call_)
       return;
 
    max_slider_val_ = (float)val / slider_length_;
@@ -46,7 +47,65 @@ void gui_threshold_t::set_max(int val)
       max_slider_->setValue((int) (max_slider_val_ * slider_length_));
    }
 
-   renderer_->set_max_threshold(min_ + (max_ - min_) * max_slider_val_);
+   float real_val = min_ + (max_ - min_) * max_slider_val_;
+
+   no_qt_call_ = true;
+   max_line_edit_->setText(std::to_string(real_val).c_str());
+   no_qt_call_ = false;
+
+   renderer_->set_max_threshold(real_val);
+   renderer_->update();
+}
+
+void gui_threshold_t::set_min(QString const & val)
+{
+   if (no_qt_call_)
+      return;
+
+   float real_val = val.toFloat();
+
+   if (real_val < min_ || real_val > max_)
+      return;
+
+   float max_val = min_ + (max_ - min_) * max_slider_val_;
+   if (real_val > max_val){
+      real_val = max_val;
+      min_line_edit_->setText(std::to_string(real_val).c_str());
+   }
+
+   no_qt_call_ = true;
+   int slider_val = (int) (slider_length_ * (real_val - min_) / (max_ - min_));
+   min_slider_->setValue(slider_val);
+   min_slider_val_ = (float)slider_val / slider_length_;
+   no_qt_call_ = false;
+
+   renderer_->set_min_threshold(real_val);
+   renderer_->update();
+}
+
+void gui_threshold_t::set_max(QString const & val)
+{
+   if (no_qt_call_)
+      return;
+
+   float real_val = val.toFloat();
+
+   if (real_val < min_ || real_val > max_)
+      return;
+
+   float min_val = min_ + (max_ - min_) * min_slider_val_;
+   if (real_val < min_val){
+      real_val = min_val;
+      max_line_edit_->setText(std::to_string(real_val).c_str());
+   }
+
+   no_qt_call_ = true;
+   int slider_val = (int) (slider_length_ * (real_val - min_) / (max_ - min_));
+   max_slider_->setValue(slider_val);
+   max_slider_val_ = (float)slider_val / slider_length_;
+   no_qt_call_ = false;
+
+   renderer_->set_max_threshold(real_val);
    renderer_->update();
 }
 
@@ -56,34 +115,55 @@ void gui_threshold_t::resizeEvent(QResizeEvent * event)
 
    slider_length_ = (size_t) size.height();
 
-   min_slider_->setMaximum(slider_length_);
-   max_slider_->setMaximum(slider_length_);
+   min_slider_->setMaximum((int) slider_length_);
+   max_slider_->setMaximum((int) slider_length_);
    min_slider_->setMinimum(0);
    max_slider_->setMinimum(0);
 
-   resize_mode_ = true;
+   no_qt_call_ = true;
    min_slider_->setValue((int) (min_slider_val_ * slider_length_));
    max_slider_->setValue((int) (max_slider_val_ * slider_length_));
-   resize_mode_ = false;
+   min_line_edit_->setText(std::to_string(min_ + (max_ - min_) * min_slider_val_).c_str());
+   max_line_edit_->setText(std::to_string(min_ + (max_ - min_) * max_slider_val_).c_str());
+   no_qt_call_ = false;
 }
 
 void gui_threshold_t::init_window()
 {
    setMinimumSize(120, 200);
    setWindowTitle("Threshold");
+   setMaximumWidth(120);
 
    setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
 
-   QHBoxLayout *layout = new QHBoxLayout();
+   auto main_layout = new QVBoxLayout();
 
+   auto sliders_layout = new QHBoxLayout();
    min_slider_.reset(new QSlider());
    connect(min_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_min(int)));
-   layout->addWidget(min_slider_.get());
-
+   sliders_layout->addWidget(min_slider_.get());
    max_slider_.reset(new QSlider());
    connect(max_slider_.get(), SIGNAL(valueChanged(int)), this, SLOT(set_max(int)));
-   layout->addWidget(max_slider_.get());
-   setLayout(layout);
+   sliders_layout->addWidget(max_slider_.get());
+
+   auto min_layout = new QHBoxLayout();
+   auto min_label = new QLabel("Min");
+   min_line_edit_.reset(new QLineEdit());
+   min_layout->addWidget(min_label);
+   min_layout->addWidget(min_line_edit_.get());
+   connect(min_line_edit_.get(), SIGNAL(textChanged(const QString &)), this, SLOT(set_min(QString const &)));
+
+   auto max_layout = new QHBoxLayout();
+   auto max_label = new QLabel("Max");
+   max_line_edit_.reset(new QLineEdit());
+   max_layout->addWidget(max_label);
+   max_layout->addWidget(max_line_edit_.get());
+   connect(max_line_edit_.get(), SIGNAL(textChanged(const QString &)), this, SLOT(set_max(QString const &)));
+
+   main_layout->addLayout(sliders_layout);
+   main_layout->addLayout(min_layout);
+   main_layout->addLayout(max_layout);
+   setLayout(main_layout);
 }
 
 void gui_threshold_t::init_menu(std::shared_ptr<QMenu> const & parent)
