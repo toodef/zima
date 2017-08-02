@@ -7,6 +7,8 @@ renderer_t::renderer_t(QWidget * parent) :
    , min_frame_x_(1)
    , min_frame_y_(1)
    , intermediate_pos_(QPoint(0, 0))
+   , frame_(new frame_t())
+   , is_init_(false)
 {
 }
 
@@ -24,8 +26,6 @@ void renderer_t::initializeGL()
    vertex_buffer_.reset(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer));
    vertex_buffer_->create();
    vertex_buffer_->setUsagePattern(QOpenGLBuffer::StaticDraw);
-
-   set_geometry();
 
    GLuint elements[] = {0, 1, 2, 3};
 
@@ -51,6 +51,8 @@ void renderer_t::initializeGL()
    program_->enableAttributeArray(2);
    program_->setAttributeBuffer(2, GL_FLOAT, sizeof(float) * 2, 2, sizeof(float) * 4);
 
+   is_init_ = true;
+
    if (image_)
       set_image(image_);
 }
@@ -72,7 +74,7 @@ void renderer_t::resizeGL( int width, int height )
 {
    glViewport(0, 0, width, height);
 
-   frame_.resize((size_t) width, (size_t) height);
+   frame_->resize((size_t) width, (size_t) height);
 
    set_geometry();
 }
@@ -92,6 +94,10 @@ void renderer_t::set_image(std::shared_ptr<image_t> const & image)
    min_ = image_->get_min();
    max_ = image_->get_max();
 
+   frame_->set_image_size(image_->get_width(), image_->get_height());
+   frame_->resize(width(), height());
+   set_geometry();
+
    GLuint tex;
    glGenTextures(1, &tex);
    glBindTexture(GL_TEXTURE_2D, tex);
@@ -102,13 +108,16 @@ void renderer_t::set_image(std::shared_ptr<image_t> const & image)
 
 void renderer_t::set_geometry()
 {
+   if (!is_init_)
+      return;
+
    vertex_buffer_->release();
    vertex_buffer_->bind();
 
-   float   left = frame_.get_left()
-         , right = frame_.get_right()
-         , top = frame_.get_top()
-         , bottom = frame_.get_bottom();
+   float   left = frame_->get_left()
+         , right = frame_->get_right()
+         , top = frame_->get_top()
+         , bottom = frame_->get_bottom();
 
    GLfloat vertices[] = {
          //Position   Texcoords
@@ -126,9 +135,9 @@ void renderer_t::wheelEvent( QWheelEvent * event )
    float scale_factor = 1.1f;
 
    if (event->delta() > 0)
-      frame_.scale(1.f / scale_factor, event->pos());
+      frame_->scale(1.f / scale_factor, event->pos());
    else
-      frame_.scale(scale_factor, event->pos());
+      frame_->scale(scale_factor, event->pos());
 
    set_geometry();
    update();
@@ -142,7 +151,7 @@ void renderer_t::mouseMoveEvent( QMouseEvent * event )
       return;
    }
 
-   frame_.move(intermediate_pos_, event->pos());
+   frame_->move(intermediate_pos_, event->pos());
 
    intermediate_pos_ = event->pos();
 
@@ -166,6 +175,8 @@ renderer_t::frame_t::frame_t():
    , top_(1.f)
    , width_(1)
    , height_(1)
+   , img_width_(1)
+   , img_height_(1)
 {
 }
 
@@ -202,14 +213,26 @@ void renderer_t::frame_t::resize(size_t width, size_t height)
    width_ = width;
    height_ = height;
 
-   if (width > height) {
-      min_frame_x_ = (float)height / width;
-      min_frame_y_ = 1;
+   if (img_width_ > img_height_) {
+      min_frame_x_ = 1;
+      min_frame_y_ = (float)img_height_ / img_width_;
    }
    else {
-      min_frame_x_ = 1;
-      min_frame_y_ = (float)width / height;
+      min_frame_x_ = (float)img_width_ / img_height_;
+      min_frame_y_ = 1;
    }
+
+   if (width > height) {
+      min_frame_x_ *= (float)height / width;
+   }
+   else {
+      min_frame_y_ *= (float)width / height;
+   }
+
+   float scale = (min_frame_x_ > min_frame_y_) ? min_frame_x_ : min_frame_y_;
+
+   min_frame_x_ /= scale;
+   min_frame_y_ /= scale;
 
    calc_frame();
 }
@@ -245,4 +268,10 @@ void renderer_t::frame_t::calc_frame()
       bottom_ = -min_frame_y_;
       top_ = min_frame_y_ * scale_ + center_.y();
    }
+}
+
+void renderer_t::frame_t::set_image_size(size_t img_width, size_t img_height)
+{
+   img_width_ = img_width;
+   img_height_ = img_height;
 }

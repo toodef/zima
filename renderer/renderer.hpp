@@ -41,6 +41,8 @@ private:
       void scale( float scale, QPoint const & position );
       void resize(size_t width, size_t height);
 
+      void set_image_size(size_t img_width, size_t img_height);
+
       float get_left(){return left_;}
       float get_right(){return right_;}
       float get_top(){return top_;}
@@ -52,6 +54,7 @@ private:
       float scale_;
 
       float min_frame_x_, min_frame_y_;
+      size_t img_width_, img_height_;
 
       float left_, right_, bottom_, top_;
 
@@ -76,9 +79,11 @@ private:
 
    QPoint intermediate_pos_;
 
-   frame_t frame_;
+   std::shared_ptr<frame_t> frame_;
 
    float min_frame_x_, min_frame_y_;
+
+   bool is_init_;
 
    bool is_moved_;
 

@@ -15,8 +15,8 @@ add_definitions(${Qt5_DEFINITIONS})
 set(CMAKE_CXX_FLAGS "${Qt5_EXECUTABLE_COMPILE_FLAGS}")
 
 if (WIN32)
-    INCLUDE_DIRECTORIES(D:/libs/gdalwin32-1.4.1/include/)
-    link_directories(D:/libs/gdal-220/lib)
+    INCLUDE_DIRECTORIES($ENV{GDAL_DIR}/include)
+    link_directories($ENV{GDAL_DIR}/lib)
 endif(WIN32)
 
 if (UNIX)
