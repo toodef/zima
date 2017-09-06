@@ -20,6 +20,7 @@ Lightweight DEM and depth maps image viewer
 - [x] Image info
 - [ ] Comparision mode
 - [ ] Big image partial uploading
+- [ ] Color mapping
 
 ## System requirements:
 - 1 core CPU or more

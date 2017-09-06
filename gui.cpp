@@ -2,7 +2,7 @@
 
 gui_t::gui_t( int argc, char ** argv, QWidget * parent ) : QMainWindow(parent)
 {
-   setWindowTitle("Tif Viewer");
+   setWindowTitle("ZIma");
 
    resize(1000, 600);
 
