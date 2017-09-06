@@ -1,7 +1,7 @@
 # ZIma
 Lightweight DEM and depth maps image viewer
 
-[![Build Status](http://94.19.81.147:8081/job/tif_viewer/badge/icon)](http://94.19.81.147:8081/job/tif_viewer/)
+[![Build Status](http://94.19.81.147:8081/job/zima/badge/icon)](http://94.19.81.147:8081/job/zima/)
 [![BCH compliance](https://bettercodehub.com/edge/badge/toodef/tif-viewer?branch=master)](https://bettercodehub.com/)
 
 ## Supported file formats:
