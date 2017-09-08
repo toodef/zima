@@ -28,7 +28,7 @@ find_package(OpenGL REQUIRED)
 
 include_directories(${OPENGL_INCLUDE_DIRS})
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::OpenGL)
 
