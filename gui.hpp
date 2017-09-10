@@ -41,5 +41,5 @@ private:
    std::shared_ptr<gui_info_t> file_info_window_;
    std::shared_ptr<gui_open_file_t> open_file_window_;
 
-   std::shared_ptr<image_t> image_;
+   std::shared_ptr<zimage_t> image_;
 };

@@ -57,7 +57,7 @@ void gui_t::closeEvent(QCloseEvent * event)
 
 void gui_t::get_file(QString const &file)
 {
-   image_.reset(new image_t(file.toStdString()));
+   image_.reset(new zimage_t(file.toStdString()));
    renderer_->set_image(image_);
    thresh_window_->set_image(image_);
    file_info_window_->set_image(image_);
