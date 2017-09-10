@@ -52,7 +52,7 @@ if (WIN32)
 
     include_directories(${ZLIB_INCLUDE_DIRS})
     link_directories(${ZLIB_LIBRARY_DIRS})
-elseif()
+elseif(UNIX)
     include_directories(/usr/include/OpenEXR)
 endif()
 
