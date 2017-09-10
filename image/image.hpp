@@ -5,8 +5,6 @@
 
 #include "parser/parser.hpp"
 
-struct image_info_t;
-
 class zimage_t
 {
 public:
@@ -25,12 +23,5 @@ public:
 private:
    float * data_;
 
-   std::shared_ptr<parser_t> parser_;
-};
-
-struct image_info_t
-{
-   size_t width, height;
-   float min_val, max_val;
-   std::string projection_;
+   parser_ptr_t parser_;
 };

@@ -226,12 +226,13 @@ void gui_info_t::file_info()
 
    if (image_) {
       image_info_t info = image_->get_info();
-      setItem(0, 0, new QTableWidgetItem("Resolution"));
-      setItem(0, 1, new QTableWidgetItem((std::to_string(info.width) + "x" + std::to_string(info.height)).c_str()));
-      setItem(1, 0, new QTableWidgetItem("Min/Max values"));
-      setItem(1, 1, new QTableWidgetItem((std::to_string(info.min_val) + "/" + std::to_string(info.max_val)).c_str()));
-      setItem(2, 0, new QTableWidgetItem("Min/Max values"));
-      setItem(2, 1, new QTableWidgetItem(info.projection_.c_str()));
+
+      size_t row_idx = 0;
+      for (auto info_unit: info){
+         setItem(row_idx, 0, new QTableWidgetItem(info_unit.first.c_str()));
+         setItem(row_idx, 1, new QTableWidgetItem(info_unit.second.c_str()));
+         row_idx++;
+      }
    }
 
    show();

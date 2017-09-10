@@ -5,19 +5,12 @@
 zimage_t::zimage_t( std::string const & file )
 {
    auto file_info = QFileInfo(file.c_str());
-
    auto extension = file_info.completeSuffix();
 
-   std::cout << extension.toStdString() << std::endl;
-
-   parser_t * parser;
-
    if (extension == "exr")
-      parser = new exr_parser_t(file);
+      parser_ = std::make_shared<exr_parser_t>(file);
    else if (extension == "tif" || extension == "tiff")
-      parser = new tif_parser_t(file);
-
-   parser_.reset(parser);
+      parser_ = std::make_shared<tif_parser_t>(file);
 
    data_ = parser_->parse();
 }
@@ -34,15 +27,7 @@ zimage_t::~zimage_t()
 
 image_info_t zimage_t::get_info()
 {
-   image_info_t info;
-
-   info.width = parser_->width();
-   info.height = parser_->height();
-   info.min_val = parser_->min();
-   info.max_val = parser_->max();
-   info.projection_ = "";//parser_->projection();
-
-   return info;
+   return parser_->image_info();
 }
 
 float zimage_t::get_min() const

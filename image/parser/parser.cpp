@@ -21,11 +21,6 @@ tif_parser_t::tif_parser_t( std::string const & file )
       std::cerr << "Can't read file!" << std::endl;
 }
 
-tif_parser_t::~tif_parser_t()
-{
-
-}
-
 float * tif_parser_t::parse()
 {
    GDALRasterBandH raster_band = GDALGetRasterBand(data_, 1);
@@ -62,14 +57,25 @@ size_t tif_parser_t::height() const
    return y_size_;
 }
 
-float tif_parser_t::min()
+float tif_parser_t::min() const
 {
    return min_;
 }
 
-float tif_parser_t::max()
+float tif_parser_t::max() const
 {
    return max_;
+}
+
+image_info_t tif_parser_t::image_info() const
+{
+   image_info_t result;
+
+   result.push_back(std::make_pair("Resolution", ((std::stringstream &)(std::stringstream() << width() << "x" << height())).str()));
+   result.push_back(std::make_pair("Min/max",    ((std::stringstream &)(std::stringstream() << min() << "/" << max())).str()));
+   result.push_back(std::make_pair("Projection", projection()));
+
+   return result;
 }
 
 std::string tif_parser_t::projection() const
@@ -133,12 +139,22 @@ size_t exr_parser_t::height() const
    return data_window_.max.y - data_window_.min.y + 1;
 }
 
-float exr_parser_t::min()
+float exr_parser_t::min() const
 {
    return min_;
 }
 
-float exr_parser_t::max()
+float exr_parser_t::max() const
 {
    return max_;
+}
+
+image_info_t exr_parser_t::image_info() const
+{
+   image_info_t result;
+
+   result.push_back(std::make_pair("Resolution", ((std::stringstream &)(std::stringstream() << width() << "x" << height())).str()));
+   result.push_back(std::make_pair("Min/max", ((std::stringstream &)(std::stringstream() << min() << "/" << max())).str()));
+
+   return result;
 }
