@@ -4,6 +4,10 @@ Lightweight DEM and depth maps image viewer
 [![Build Status](http://94.19.81.147:8081/job/zima/badge/icon)](http://94.19.81.147:8081/job/zima/)
 [![BCH compliance](https://bettercodehub.com/edge/badge/toodef/tif-viewer?branch=master)](https://bettercodehub.com/)
 
+<div align="center">
+  <img src="http://toodef.ru/wp-content/uploads/2017/09/sample-1.jpg"><br><br>
+</div>
+
 ## Supported file formats:
 - [x] *.tif
   - [x] float32
@@ -13,12 +17,12 @@ Lightweight DEM and depth maps image viewer
   - [x] float32
   - [ ] float16
   - [ ] uint8
-- [ ] *.exr
+- [x] *.exr - HDRI OpenEXR image file format
 
 ## Features:
-- [x] Fast treshold
+- [x] Fast threshold
 - [x] Image info
-- [ ] Comparision mode
+- [ ] Comparison mode
 - [ ] Big image partial uploading
 - [ ] Color mapping
 

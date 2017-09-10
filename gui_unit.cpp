@@ -175,7 +175,7 @@ void gui_threshold_t::init_menu(std::shared_ptr<QMenu> const & parent)
    parent->addAction(threshold_.get());
 }
 
-void gui_threshold_t::set_image(std::shared_ptr<image_t> const & image)
+void gui_threshold_t::set_image(std::shared_ptr<zimage_t> const & image)
 {
    if (!image)
       return;
@@ -226,18 +226,19 @@ void gui_info_t::file_info()
 
    if (image_) {
       image_info_t info = image_->get_info();
-      setItem(0, 0, new QTableWidgetItem("Resolution"));
-      setItem(0, 1, new QTableWidgetItem((std::to_string(info.width) + "x" + std::to_string(info.height)).c_str()));
-      setItem(1, 0, new QTableWidgetItem("Min/Max values"));
-      setItem(1, 1, new QTableWidgetItem((std::to_string(info.min_val) + "/" + std::to_string(info.max_val)).c_str()));
-      setItem(2, 0, new QTableWidgetItem("Min/Max values"));
-      setItem(2, 1, new QTableWidgetItem(info.projection_.c_str()));
+
+      size_t row_idx = 0;
+      for (auto info_unit: info){
+         setItem(row_idx, 0, new QTableWidgetItem(info_unit.first.c_str()));
+         setItem(row_idx, 1, new QTableWidgetItem(info_unit.second.c_str()));
+         row_idx++;
+      }
    }
 
    show();
 }
 
-void gui_info_t::set_image(std::shared_ptr<image_t> const & image)
+void gui_info_t::set_image(std::shared_ptr<zimage_t> const & image)
 {
    image_ = image;
 }
@@ -245,7 +246,10 @@ void gui_info_t::set_image(std::shared_ptr<image_t> const & image)
 gui_open_file_t::gui_open_file_t( std::shared_ptr<QMenu> const & parent )
 {
    setWindowTitle("Open file");
-   setNameFilter("GTiff images (*.tif)");
+
+   QStringList filters;
+   filters << "All images (*.tif *.exr)" << "GeoTIFF images (*.tif)" << "OpenEXR (*.exr)";
+   setNameFilters(filters);
    setViewMode(QFileDialog::Detail);
 
    open_file_.reset(new QAction("Open file", parent.get()));

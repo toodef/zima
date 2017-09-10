@@ -87,7 +87,7 @@ void renderer_t::set_min_threshold(float min) { min_ = min; }
 
 void renderer_t::set_max_threshold(float max) { max_ = max; }
 
-void renderer_t::set_image(std::shared_ptr<image_t> const & image)
+void renderer_t::set_image(std::shared_ptr<zimage_t> const & image)
 {
    image_ = image;
 
@@ -103,7 +103,7 @@ void renderer_t::set_image(std::shared_ptr<image_t> const & image)
    glBindTexture(GL_TEXTURE_2D, tex);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, (GLsizei) image_->get_width(), (GLsizei) image_->get_height(), 0, GL_RED, GL_FLOAT, image_->get_image());
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, (GLsizei)image_->get_width(), (GLsizei)image_->get_height(), 0, GL_RED, GL_FLOAT, image_->get_image());
 }
 
 void renderer_t::set_geometry()

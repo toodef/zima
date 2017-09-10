@@ -23,7 +23,7 @@ public:
    explicit renderer_t( QWidget * parent = nullptr );
    ~renderer_t() override;
 
-   void set_image( std::shared_ptr<image_t> const & image );
+   void set_image( std::shared_ptr<zimage_t> const & image );
 
    void set_min_threshold(float min);
    void set_max_threshold(float max);
@@ -73,7 +73,7 @@ private:
    std::shared_ptr<QOpenGLShader> vertex_shader_, fragment_shader_;
    std::shared_ptr<QOpenGLShaderProgram> program_;
 
-   std::shared_ptr<image_t> image_;
+   std::shared_ptr<zimage_t> image_;
 
    float min_, max_;
 
