@@ -1,50 +1,51 @@
+#include <QFileInfo>
+
 #include "image.hpp"
 
-image_t::image_t( std::string const & file )
+zimage_t::zimage_t( std::string const & file )
 {
-   parser_.reset(new parser_t(file));
+   auto file_info = QFileInfo(file.c_str());
+   auto extension = file_info.completeSuffix();
+
+   if (extension == "exr")
+      parser_ = std::make_shared<exr_parser_t>(file);
+   else if (extension == "tif" || extension == "tiff")
+      parser_ = std::make_shared<tif_parser_t>(file);
 
    data_ = parser_->parse();
 }
 
-float * image_t::get_image()
+float * zimage_t::get_image()
 {
    return data_;
 }
 
-image_t::~image_t()
+zimage_t::~zimage_t()
 {
+   delete[] data_;
 }
 
-image_info_t image_t::get_info()
+image_info_t zimage_t::get_info()
 {
-   image_info_t info;
-
-   info.width = parser_->width();
-   info.height = parser_->height();
-   info.min_val = parser_->min();
-   info.max_val = parser_->max();
-   info.projection_ = parser_->projection();
-
-   return info;
+   return parser_->image_info();
 }
 
-float image_t::get_min() const
+float zimage_t::get_min() const
 {
    return parser_->min();
 }
 
-float image_t::get_max() const
+float zimage_t::get_max() const
 {
    return parser_->max();
 }
 
-size_t image_t::get_width() const
+size_t zimage_t::get_width() const
 {
    return parser_->width();
 }
 
-size_t image_t::get_height() const
+size_t zimage_t::get_height() const
 {
    return parser_->height();
 }
