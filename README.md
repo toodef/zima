@@ -17,12 +17,12 @@ Lightweight DEM and depth maps image viewer
   - [x] float32
   - [ ] float16
   - [ ] uint8
-- [ ] *.exr
+- [x] *.exr - HDRI OpenEXR image file format
 
 ## Features:
 - [x] Fast threshold
 - [x] Image info
-- [ ] Comparision mode
+- [ ] Comparison mode
 - [ ] Big image partial uploading
 - [ ] Color mapping
 

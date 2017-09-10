@@ -175,7 +175,7 @@ void gui_threshold_t::init_menu(std::shared_ptr<QMenu> const & parent)
    parent->addAction(threshold_.get());
 }
 
-void gui_threshold_t::set_image(std::shared_ptr<image_t> const & image)
+void gui_threshold_t::set_image(std::shared_ptr<zimage_t> const & image)
 {
    if (!image)
       return;
@@ -237,7 +237,7 @@ void gui_info_t::file_info()
    show();
 }
 
-void gui_info_t::set_image(std::shared_ptr<image_t> const & image)
+void gui_info_t::set_image(std::shared_ptr<zimage_t> const & image)
 {
    image_ = image;
 }
@@ -245,7 +245,10 @@ void gui_info_t::set_image(std::shared_ptr<image_t> const & image)
 gui_open_file_t::gui_open_file_t( std::shared_ptr<QMenu> const & parent )
 {
    setWindowTitle("Open file");
-   setNameFilter("GTiff images (*.tif)");
+
+   QStringList filters;
+   filters << "All images (*.tif *.exr)" << "GeoTIFF images (*.tif)" << "OpenEXR (*.exr)";
+   setNameFilters(filters);
    setViewMode(QFileDialog::Detail);
 
    open_file_.reset(new QAction("Open file", parent.get()));

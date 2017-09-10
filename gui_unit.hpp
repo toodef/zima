@@ -24,7 +24,7 @@ public:
    explicit gui_threshold_t( std::shared_ptr<QMenu> const & parent, std::shared_ptr<renderer_t> const & renderer );
    ~gui_threshold_t() override;
 
-   void set_image(std::shared_ptr<image_t> const & image);
+   void set_image(std::shared_ptr<zimage_t> const & image);
 
 private slots:
    void set_min(int val);
@@ -51,7 +51,7 @@ private:
 
    std::shared_ptr<QAction> threshold_;
 
-   std::shared_ptr<image_t> image_;
+   std::shared_ptr<zimage_t> image_;
    std::shared_ptr<renderer_t> renderer_;
 };
 
@@ -62,7 +62,7 @@ class gui_info_t : public QTableWidget
 public:
    explicit gui_info_t(std::shared_ptr<QMenu> const & parent);
 
-   void set_image( std::shared_ptr<image_t> const & image );
+   void set_image( std::shared_ptr<zimage_t> const & image );
 
 private slots:
    void file_info();
@@ -70,7 +70,7 @@ private slots:
 private:
    std::shared_ptr<QAction> file_info_;
 
-   std::shared_ptr<image_t> image_;
+   std::shared_ptr<zimage_t> image_;
 };
 
 class gui_open_file_t : public QFileDialog

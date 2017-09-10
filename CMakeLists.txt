@@ -28,9 +28,24 @@ find_package(OpenGL REQUIRED)
 
 include_directories(${OPENGL_INCLUDE_DIRS})
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCE_FILES})
+if (DEFINED ENV{OPENEXR_ROOT})
+    set(OPENEXR_INCLUDE_DIRS "$ENV{OPENEXR_ROOT}/include/OpenEXR")
+    set(OPENEXR_LIBRARY_DIRS $ENV{OPENEXR_ROOT}/lib)
+else()
+    message(ERROR "Please set OPENEXR_ROOT environment variable")
+endif()
 
-target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::OpenGL)
+include_directories(${OPENEXR_INCLUDE_DIRS})
+if (CMAKE_BUILD_TYPE STREQUAL Release)
+    link_directories(${OPENEXR_LIBRARY_DIRS}/Release)
+elseif(CMAKE_BUILD_TYPE STREQUAL Debug)
+    link_directories(${OPENEXR_LIBRARY_DIRS}/Debug)
+endif()
+
+link_directories(D:/libs/zlib/lib)
+
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} zlibstatic ${OPENGL_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::OpenGL)
 
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} gdal_i)
@@ -38,4 +53,4 @@ elseif(UNIX)
     target_link_libraries(${PROJECT_NAME} gdal)
 endif()
 
-target_link_libraries(${PROJECT_NAME} )
+target_link_libraries(${PROJECT_NAME} Half IlmThread Iex Imath IlmImfUtil IexMath IlmImf)
