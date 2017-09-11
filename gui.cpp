@@ -4,6 +4,11 @@ gui_t::gui_t( int argc, char ** argv, QWidget * parent ) : QMainWindow(parent)
 {
    setWindowTitle("ZIma");
 
+   Q_INIT_RESOURCE(resource);
+//   std::cout << QResource::registerResource("resource.rcc");
+   QIcon ico(":/images/logo_128.png");
+   setWindowIcon(ico);
+
    resize(1000, 600);
 
    auto central_widget = new QWidget;

@@ -11,6 +11,7 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
 include_directories(${Qt5_INCLUDES})
 add_definitions(${Qt5_DEFINITIONS})
+qt5_add_resources(RESOURCES resource.qrc)
 
 set(CMAKE_CXX_FLAGS "${Qt5_EXECUTABLE_COMPILE_FLAGS}")
 
@@ -56,7 +57,7 @@ elseif(UNIX)
     include_directories(/usr/include/OpenEXR)
 endif()
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} WIN32 ${RESOURCES} ${SOURCE_FILES})
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} zlibstatic ${OPENGL_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::OpenGL gdal_i Half IlmThread Iex IlmImf)
 elseif(UNIX)

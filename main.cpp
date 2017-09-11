@@ -8,7 +8,6 @@ int main( int argc, char ** argv )
    app.setAttribute( Qt::AA_UseDesktopOpenGL );
 
    gui_t window(argc, argv);
-
    window.show();
 
    return app.exec();
