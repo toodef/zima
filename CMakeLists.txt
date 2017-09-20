@@ -3,15 +3,14 @@ project(zima)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES main.cpp image/parser/parser.cpp gui.cpp gui.hpp renderer/renderer.cpp renderer/renderer.hpp image/image.cpp gui_unit.cpp gui_unit.hpp)
+set(SOURCE_FILES main.cpp image/parser/parser.cpp renderer/renderer.cpp renderer/renderer.hpp image/image.cpp)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
+find_package(Qt5 REQUIRED COMPONENTS OpenGL)
 include_directories(${Qt5_INCLUDES})
 add_definitions(${Qt5_DEFINITIONS})
-qt5_add_resources(RESOURCES resource.qrc)
 
 set(CMAKE_CXX_FLAGS "${Qt5_EXECUTABLE_COMPILE_FLAGS}")
 
@@ -57,9 +56,11 @@ elseif(UNIX)
     include_directories(/usr/include/OpenEXR)
 endif()
 
-add_executable(${PROJECT_NAME} WIN32 ${RESOURCES} ${SOURCE_FILES})
+add_subdirectory(gui)
+
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME} zlibstatic ${OPENGL_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::OpenGL gdal_i Half IlmThread Iex IlmImf)
+    target_link_libraries(${PROJECT_NAME} zlibstatic gui ${OPENGL_LIBRARIES} Qt5::OpenGL gdal_i Half IlmThread Iex IlmImf)
 elseif(UNIX)
-    target_link_libraries(${PROJECT_NAME} gdal ${OPENGL_LIBRARIES} Qt5::Core Qt5::Widgets Qt5::OpenGL Half IlmThread Iex IlmImf)
+    target_link_libraries(${PROJECT_NAME} gdal gui ${OPENGL_LIBRARIES} Qt5::OpenGL Half IlmThread Iex IlmImf)
 endif()

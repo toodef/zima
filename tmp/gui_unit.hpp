@@ -89,3 +89,15 @@ private slots:
 private:
    std::shared_ptr<QAction> open_file_;
 };
+
+class gui_about_t: public QWidget{
+   Q_OBJECT
+
+public:
+   explicit gui_about_t( std::shared_ptr<QMenu> const & parent );
+
+private:
+   std::string text_ = "Powered by Anton Fedotov (c): toodef.ru";
+
+   std::shared_ptr<QAction> about_;
+};

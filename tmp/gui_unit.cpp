@@ -248,7 +248,7 @@ gui_open_file_t::gui_open_file_t( std::shared_ptr<QMenu> const & parent )
    setWindowTitle("Open file");
 
    QStringList filters;
-   filters << "All images (*.tif *.exr)" << "GeoTIFF images (*.tif)" << "OpenEXR (*.exr)";
+   filters << "All bin (*.tif *.exr)" << "GeoTIFF bin (*.tif)" << "OpenEXR (*.exr)";
    setNameFilters(filters);
    setViewMode(QFileDialog::Detail);
 
@@ -263,4 +263,26 @@ gui_open_file_t::gui_open_file_t( std::shared_ptr<QMenu> const & parent )
 void gui_open_file_t::get_file(QStringList const & files)
 {
    emit file_selected(files[0]);
+}
+
+gui_about_t::gui_about_t(std::shared_ptr<QMenu> const &parent)
+{
+   setWindowTitle("About ZIma");
+
+//   QHBoxLayout layout;
+//   setLayout(&layout);
+
+   auto * text_label = new QLabel(this);
+   text_label->setText(QString::fromUtf8(text_.c_str()));
+   int left, top, right, bottom;
+   text_label->getContentsMargins(&left, &top, &right, &bottom);
+   setFixedSize(right - left, top - bottom);
+   std::cout << right - left << " " << top - bottom;
+
+//   layout.addWidget(text_label);
+
+   about_.reset(new QAction("About ZIma", parent.get()));
+   about_->setEnabled(true);
+   connect(about_.get(), SIGNAL(triggered()), this, SLOT(show()));
+   parent->addAction(about_.get());
 }

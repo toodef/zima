@@ -35,11 +35,12 @@ private:
 
    std::shared_ptr<renderer_t> renderer_;
 
-   std::shared_ptr<QMenu> file_menu_, view_menu_, about_menu_;
+   std::shared_ptr<QMenu> file_menu_, view_menu_, help_menu_;
 
    std::shared_ptr<gui_threshold_t> thresh_window_;
    std::shared_ptr<gui_info_t> file_info_window_;
    std::shared_ptr<gui_open_file_t> open_file_window_;
+   std::shared_ptr<gui_about_t> about_window_;
 
    std::shared_ptr<zimage_t> image_;
 };

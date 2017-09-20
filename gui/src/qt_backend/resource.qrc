@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+        <file>../../../bin/logo_128.png</file>
+        <file>../../../LICENSE.md</file>
+    </qresource>
+</RCC>

@@ -4,9 +4,7 @@ gui_t::gui_t( int argc, char ** argv, QWidget * parent ) : QMainWindow(parent)
 {
    setWindowTitle("ZIma");
 
-   Q_INIT_RESOURCE(resource);
-//   std::cout << QResource::registerResource("resource.rcc");
-   QIcon ico(":/images/logo_128.png");
+   QIcon ico(":/bin/logo_128.png");
    setWindowIcon(ico);
 
    resize(1000, 600);
@@ -42,7 +40,8 @@ void gui_t::init_menu( int argc, char ** argv )
       get_file(QString(argv[1]));
    }
 
-   about_menu_.reset(menu_bar->addMenu("About"));
+   help_menu_.reset(menu_bar->addMenu("Help"));
+   about_window_.reset(new gui_about_t(help_menu_));
 }
 
 void gui_t::closeEvent(QCloseEvent * event)
@@ -67,4 +66,3 @@ void gui_t::get_file(QString const &file)
    thresh_window_->set_image(image_);
    file_info_window_->set_image(image_);
 }
-
