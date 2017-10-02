@@ -25,6 +25,7 @@ qt_app_t::qt_app_t(int argc, char **argv, std::string const & name):
      app_(std::make_unique<QApplication>(argc, argv))
 {
    main_window_ = std::make_shared<qt_window_t>(name);
+   app_->setAttribute( Qt::AA_UseDesktopOpenGL );
 
    Q_INIT_RESOURCE(resource);
 }
@@ -106,6 +107,13 @@ line_edit_ptr_t qt_window_t::add_line_edit(std::string const & label, float defa
 line_edit_ptr_t qt_window_t::add_line_edit(std::string const & label, double default_value, elements_interdependence_t placement)
 { return add_line_edit(label, std::to_string(default_value), placement); }
 
+gl_layout_ptr_t qt_window_t::add_gl_layout()
+{
+   gl_layout_ptr_t unit = std::make_shared<qt_gl_layout_t>();
+   layouts_[last_layout_idx_]->addLayout((QBoxLayout *)unit->instance());
+   return unit;
+}
+
 void qt_window_t::resize(size_t width, size_t height)
 {
    window_.resize(width, height);
@@ -168,4 +176,78 @@ std::string qt_line_edit_t::get_value_s() const
 float qt_line_edit_t::get_value_f() const
 {
    return std::stof(get_value_s());
+}
+
+qt_gl_layout_t::qt_gl_layout_t():
+     layout_(std::make_shared<QHBoxLayout>())
+   , is_moved_(false)
+   , intermediate_pos_(QPoint(0, 0))
+{
+   layout_->addWidget(this);
+}
+
+void * qt_gl_layout_t::instance() const
+{
+   return layout_.get();
+}
+
+void qt_gl_layout_t::initializeGL()
+{
+   glGetError();
+
+   if (init_callback_)
+      init_callback_();
+   else
+      QGLWidget::initializeGL();
+}
+
+void qt_gl_layout_t::paintGL()
+{
+   if (redraw_callback_)
+      redraw_callback_();
+   else
+      QGLWidget::paintGL();
+}
+
+void qt_gl_layout_t::resizeGL(int width, int height)
+{
+   if (resize_callback_)
+      resize_callback_(width, height);
+   else
+      QGLWidget::resizeGL(width, height);
+
+   update();
+}
+
+void qt_gl_layout_t::wheelEvent(QWheelEvent * event)
+{
+   if (on_wheel_callback_)
+      on_wheel_callback_(event->delta(), event->pos().x(), event->pos().y());
+
+   update();
+}
+
+void qt_gl_layout_t::mouseMoveEvent(QMouseEvent *event)
+{
+   if (!on_mouse_move_callback_)
+      return;
+
+   if (!is_moved_) {
+      intermediate_pos_ = event->pos();
+      is_moved_ = true;
+      return;
+   }
+
+   QPoint offset = event->pos() - intermediate_pos_;
+
+   on_mouse_move_callback_(offset.x(), offset.y());
+
+   update();
+
+   intermediate_pos_ = event->pos();
+}
+
+void qt_gl_layout_t::mouseReleaseEvent(QMouseEvent *event)
+{
+   is_moved_ = false;
 }

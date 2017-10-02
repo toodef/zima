@@ -20,8 +20,10 @@ public:
    virtual size_t get_width() const;
    virtual size_t get_height() const;
 
-private:
-   float * data_;
+   virtual void clear_data();
 
+private:
    parser_ptr_t parser_;
+
+   float * data_;
 };

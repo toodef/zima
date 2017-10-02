@@ -22,7 +22,7 @@ float * zimage_t::get_image()
 
 zimage_t::~zimage_t()
 {
-   delete[] data_;
+   clear_data();
 }
 
 image_info_t zimage_t::get_info()
@@ -48,4 +48,12 @@ size_t zimage_t::get_width() const
 size_t zimage_t::get_height() const
 {
    return parser_->height();
+}
+
+void zimage_t::clear_data()
+{
+   if (data_){
+      delete[] data_;
+      data_ = nullptr;
+   }
 }

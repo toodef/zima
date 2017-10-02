@@ -8,10 +8,6 @@ set(SOURCE_FILES main.cpp image/parser/parser.cpp renderer/renderer.cpp renderer
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS OpenGL)
-include_directories(${Qt5_INCLUDES})
-add_definitions(${Qt5_DEFINITIONS})
-
 set(CMAKE_CXX_FLAGS "${Qt5_EXECUTABLE_COMPILE_FLAGS}")
 
 if (WIN32)
@@ -25,15 +21,26 @@ if (UNIX)
 endif(UNIX)
 
 find_package(OpenGL REQUIRED)
-
 include_directories(${OPENGL_INCLUDE_DIRS})
+
+if (DEFINED ENV{GLEW_INCLUDE_DIR})
+    include_directories($ENV{GLEW_INCLUDE_DIR})
+else()
+    message(ERROR " Set GLEW_INCLUDE_DIR environment variable")
+endif()
+
+if (DEFINED ENV{GLEW_LIBRARY_DIR})
+    link_directories($ENV{GLEW_LIBRARY_DIR})
+else()
+    message(ERROR " Set GLEW_LIBRARY_DIR environment variable")
+endif()
 
 if (WIN32)
     if (DEFINED ENV{OPENEXR_ROOT})
         set(OPENEXR_INCLUDE_DIRS $ENV{OPENEXR_ROOT}/include/OpenEXR)
         set(OPENEXR_LIBRARY_DIRS $ENV{OPENEXR_ROOT}/lib)
     else()
-        message(ERROR "Please set OPENEXR_ROOT environment variable")
+        message(ERROR " Please set OPENEXR_ROOT environment variable")
     endif()
 
     include_directories(${OPENEXR_INCLUDE_DIRS})
@@ -47,7 +54,7 @@ if (WIN32)
         set(ZLIB_INCLUDE_DIRS $ENV{ZLIB_ROOT}/include)
         set(ZLIB_LIBRARY_DIRS $ENV{ZLIB_ROOT}/lib)
     else()
-        message(ERROR "Please set ZLIB_ROOT environment variable")
+        message(ERROR " Please set ZLIB_ROOT environment variable")
     endif()
 
     include_directories(${ZLIB_INCLUDE_DIRS})
@@ -60,7 +67,7 @@ add_subdirectory(gui)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME} zlibstatic gui ${OPENGL_LIBRARIES} Qt5::OpenGL gdal_i Half IlmThread Iex IlmImf)
+    target_link_libraries(${PROJECT_NAME} zlibstatic gui ${OPENGL_LIBRARIES} glew32 gdal_i Half IlmThread Iex IlmImf)
 elseif(UNIX)
-    target_link_libraries(${PROJECT_NAME} gdal gui ${OPENGL_LIBRARIES} Qt5::OpenGL Half IlmThread Iex IlmImf)
+    target_link_libraries(${PROJECT_NAME} gdal gui ${OPENGL_LIBRARIES} ${GLEW_LIBRARY_DIR} Half IlmThread Iex IlmImf)
 endif()

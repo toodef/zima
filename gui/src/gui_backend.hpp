@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 
 enum elements_interdependence_t{
    EP_vertical = 0,
@@ -21,10 +22,23 @@ public:
 
 typedef std::shared_ptr<line_edit_t> line_edit_ptr_t;
 
-class image_layout_t{
+class gl_layout_t{
+public:
+   virtual void * instance() const = 0;
+
+   virtual void set_init_callback(std::function<void()> const & callback) {init_callback_ = callback;}
+   virtual void set_redraw_callback(std::function<void()> const & callback) {redraw_callback_ = callback;}
+   virtual void set_resize_callback(std::function<void(int, int)> const & callback) {resize_callback_ = callback;}
+   virtual void set_on_wheel_callback(std::function<void(int, int, int)> const & callback) {on_wheel_callback_ = callback;}
+   virtual void set_on_mouse_move_callback(std::function<void(int, int)> const & callback) {on_mouse_move_callback_ = callback;}
+
+protected:
+   std::function<void()> init_callback_, redraw_callback_;
+   std::function<void(int, int, int)> on_wheel_callback_;
+   std::function<void(int, int)> resize_callback_, on_mouse_move_callback_;
 };
 
-typedef std::shared_ptr<image_layout_t> image_layout_ptr_t;
+typedef std::shared_ptr<gl_layout_t> gl_layout_ptr_t;
 
 class track_bar_t{
 };
@@ -43,6 +57,8 @@ public:
    virtual line_edit_ptr_t add_line_edit(std::string const & label, int default_value, elements_interdependence_t placement = EP_vertical) = 0;
    virtual line_edit_ptr_t add_line_edit(std::string const & label, float default_value, elements_interdependence_t placement = EP_vertical) = 0;
    virtual line_edit_ptr_t add_line_edit(std::string const & label, double default_value, elements_interdependence_t placement = EP_vertical) = 0;
+
+   virtual gl_layout_ptr_t add_gl_layout() = 0;
 
    virtual void start_horisontal() = 0;
    virtual void start_group(std::string const & group_name) = 0;

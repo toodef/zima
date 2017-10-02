@@ -1,86 +1,98 @@
 #include "renderer.hpp"
 
-renderer_t::renderer_t(QWidget * parent) :
+renderer_t::renderer_t() :
      min_(0)
    , max_(0)
-   , is_moved_(false)
    , min_frame_x_(1)
    , min_frame_y_(1)
-   , intermediate_pos_(QPoint(0, 0))
    , frame_(new frame_t())
    , is_init_(false)
+   , width_(0)
+   , height_(0)
 {
 }
 
-void renderer_t::initializeGL()
+void renderer_t::initialize()
 {
-   vertex_array_obj_.reset(new QOpenGLVertexArrayObject());
-   vertex_array_obj_->create();
-   vertex_array_obj_->bind();
+   GLenum glew_status = glewInit();
 
-   index_buffer_.reset(new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer));
-   index_buffer_->create();
-   index_buffer_->setUsagePattern(QOpenGLBuffer::StaticDraw);
-   index_buffer_->bind();
+   if (glew_status != GLEW_OK)
+      std::cerr << "glewInit failed. Message: " << glewGetErrorString(glew_status) << std::endl;
 
-   vertex_buffer_.reset(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer));
-   vertex_buffer_->create();
-   vertex_buffer_->setUsagePattern(QOpenGLBuffer::StaticDraw);
+   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-   GLuint elements[] = {0, 1, 2, 3};
+   glGenBuffers(1, &vertex_buffer_);
 
-   index_buffer_->allocate(elements, sizeof(elements));
+   GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+   const GLchar * v_source = vertex_shader_src_.c_str();
+   glShaderSource(vertex_shader, 1, &v_source, 0);
+   glCompileShader(vertex_shader);
 
-   index_buffer_->bind();
-   vertex_buffer_->bind();
-   vertex_array_obj_->bind();
+   GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+   const GLchar * f_source = fragment_shader_src_.c_str();
+   glShaderSource(fragment_shader, 1, &f_source, 0);
+   glCompileShader(fragment_shader);
 
-   vertex_shader_.reset(new QOpenGLShader(QOpenGLShader::Vertex));
-   vertex_shader_->compileSourceCode(vertex_shader_src_.c_str());
-   fragment_shader_.reset(new QOpenGLShader(QOpenGLShader::Fragment));
-   fragment_shader_->compileSourceCode(fragment_shader_src_.c_str());
+   shader_program_ = glCreateProgram();
+   glAttachShader(shader_program_, vertex_shader);
+   glAttachShader(shader_program_, fragment_shader);
+   glLinkProgram(shader_program_);
 
-   program_.reset(new QOpenGLShaderProgram());
-   program_->addShader(vertex_shader_.get());
-   program_->addShader(fragment_shader_.get());
-   program_->link();
-   program_->bind();
+   GLint program_status;
+   glGetProgramiv(shader_program_, GL_LINK_STATUS, &program_status);
+   if (!program_status)
+      std::cerr << "Shader program doesn't linked" << std::endl;
 
-   program_->enableAttributeArray(0);
-   program_->setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(float) * 4);
-   program_->enableAttributeArray(2);
-   program_->setAttributeBuffer(2, GL_FLOAT, sizeof(float) * 2, 2, sizeof(float) * 4);
+   min_uniform_ = glGetUniformLocation(shader_program_, "min");
+   max_uniform_ = glGetUniformLocation(shader_program_, "max");
 
    is_init_ = true;
 
    if (image_)
       set_image(image_);
+
+   GLenum errCode; if((errCode=glGetError()) != GL_NO_ERROR) std::cout << "OpenGl error! - " << gluErrorString(errCode);
 }
 
-void renderer_t::paintGL()
+void renderer_t::redraw()
 {
-   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   if (image_){
-      program_->setUniformValue("min", min_);
-      program_->setUniformValue("max", max_);
-   }
+   if (!image_)
+      return;
+
+   glUseProgram(shader_program_);
+
+   glBindTexture(GL_TEXTURE_2D, texture_);
+   glEnable(GL_TEXTURE_2D);
+
+   glUniform1f(min_uniform_, min_);
+   glUniform1f(max_uniform_, max_);
+
+   glEnableVertexAttribArray(0);
+   glEnableVertexAttribArray(2);
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
+   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (const GLvoid *)(sizeof(float) * 2));
 
    glDrawArrays(GL_QUADS, 0, 4);
+
+   glDisableVertexAttribArray(0);
+   glDisableVertexAttribArray(2);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glUseProgram(0);
 }
 
-void renderer_t::resizeGL( int width, int height )
+void renderer_t::resize(int width, int height)
 {
+   width_ = width;
+   height_ = height;
+
    glViewport(0, 0, width, height);
 
-   frame_->resize((size_t) width, (size_t) height);
+   frame_->resize((size_t)width, (size_t)height);
 
    set_geometry();
-}
-
-renderer_t::~renderer_t()
-{
 }
 
 void renderer_t::set_min_threshold(float min) { min_ = min; }
@@ -95,24 +107,43 @@ void renderer_t::set_image(std::shared_ptr<zimage_t> const & image)
    max_ = image_->get_max();
 
    frame_->set_image_size(image_->get_width(), image_->get_height());
-   frame_->resize(width(), height());
-   set_geometry();
+   frame_->resize(width_, height_);
 
-   GLuint tex;
-   glGenTextures(1, &tex);
-   glBindTexture(GL_TEXTURE_2D, tex);
+   glGenTextures(1, &texture_);
+   glBindTexture(GL_TEXTURE_2D, texture_);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, (GLsizei)image_->get_width(), (GLsizei)image_->get_height(), 0, GL_RED, GL_FLOAT, image_->get_image());
+
+   image_->clear_data();
+
+   set_geometry();
+}
+
+void renderer_t::on_wheel(int delta, int x, int y)
+{
+   static const float scale_factor = 1.1f;
+
+   veci_t pos(x, y);
+
+   if (delta > 0)
+      frame_->scale(1.f / scale_factor, pos);
+   else
+      frame_->scale(scale_factor, pos);
+
+   set_geometry();
+}
+
+void renderer_t::on_mouse_move(int x_offset, int y_offset)
+{
+   frame_->move(veci_t(x_offset, y_offset));
+   set_geometry();
 }
 
 void renderer_t::set_geometry()
 {
    if (!is_init_)
       return;
-
-   vertex_buffer_->release();
-   vertex_buffer_->bind();
 
    float   left = frame_->get_left()
          , right = frame_->get_right()
@@ -127,45 +158,25 @@ void renderer_t::set_geometry()
          left, top, 0.f, 0.f, // top-left     - 3
    };
 
-   vertex_buffer_->allocate(vertices, sizeof(vertices));
+   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void renderer_t::wheelEvent( QWheelEvent * event )
+renderer_t::~renderer_t()
 {
-   float scale_factor = 1.1f;
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glDeleteBuffers(1, &vertex_buffer_);
 
-   if (event->delta() > 0)
-      frame_->scale(1.f / scale_factor, event->pos());
-   else
-      frame_->scale(scale_factor, event->pos());
+   glUseProgram(0);
+   glDeleteProgram(shader_program_);
 
-   set_geometry();
-   update();
-}
-
-void renderer_t::mouseMoveEvent( QMouseEvent * event )
-{
-   if (!is_moved_) {
-      intermediate_pos_ = event->pos();
-      is_moved_ = true;
-      return;
-   }
-
-   frame_->move(intermediate_pos_, event->pos());
-
-   intermediate_pos_ = event->pos();
-
-   set_geometry();
-   update();
-}
-
-void renderer_t::mouseReleaseEvent( QMouseEvent * event )
-{
-   is_moved_ = false;
+   glBindTexture(GL_TEXTURE_2D, 0);
+   glDeleteTextures(1, &texture_);
 }
 
 renderer_t::frame_t::frame_t():
-     center_(QVector2D(0, 0))
+     center_(vecf_t(0, 0))
    , scale_(1)
    , min_frame_x_(1)
    , min_frame_y_(1)
@@ -180,28 +191,27 @@ renderer_t::frame_t::frame_t():
 {
 }
 
-void renderer_t::frame_t::move(QPoint const & prev_pos, QPoint const & new_pos)
+void renderer_t::frame_t::move(veci_t const & offset)
 {
-   QVector2D prev_frame_pos(2.f * (float)prev_pos.x() / width_ - 1.f, 2.f * (1.f - (float)prev_pos.y() / height_) - 1.f);
-   QVector2D new_frame_pos(2.f * (float)new_pos.x() / width_ - 1.f, 2.f * (1.f - (float)new_pos.y() / height_) - 1.f);
+   vecf_t frame_offset(2.f * ((float)offset.x) / width_, -2.f * ((float)offset.y) / height_);
 
-   center_ += new_frame_pos - prev_frame_pos;
+   center_ += frame_offset;
 
    calc_frame();
 }
 
-void renderer_t::frame_t::scale(float scale, QPoint const & position)
+void renderer_t::frame_t::scale(float scale, veci_t const & position)
 {
-   QVector2D pos((2.f * (float)position.x() / width_ - 1.f), (2.f * (1.f - (float)position.y() / height_) - 1.f));
+   vecf_t pos((2.f * ((float)position.x) / width_ - 1.f), (2.f * (1.f - ((float)position.y) / height_) - 1.f));
 
-   QVector2D prev_pos = (pos - center_);
+   vecf_t prev_pos = (pos - center_);
 
    scale_ *= scale;
 
    if (scale_ < 1)
       scale_ = 1.f;
 
-   QVector2D new_pos = (pos - center_) * scale;
+   vecf_t new_pos = (pos - center_) * scale;
 
    center_ += prev_pos - new_pos;
 
@@ -239,34 +249,34 @@ void renderer_t::frame_t::resize(size_t width, size_t height)
 
 void renderer_t::frame_t::calc_frame()
 {
-   left_ = -min_frame_x_ * scale_ + center_.x();
+   left_ = -min_frame_x_ * scale_ + center_.x;
 
    if (left_ > -min_frame_x_){
-      center_.setX(center_.x() - (left_ + min_frame_x_));
+      center_.x = center_.x - (left_ + min_frame_x_);
       left_ = -min_frame_x_;
    }
 
-   right_ = min_frame_x_ * scale_ + center_.x();
+   right_ = min_frame_x_ * scale_ + center_.x;
 
    if (right_ < min_frame_x_){
-      center_.setX(center_.x() - (right_ - min_frame_x_));
+      center_.x = center_.x - (right_ - min_frame_x_);
       right_ = min_frame_x_;
-      left_ = -min_frame_x_ * scale_ + center_.x();
+      left_ = -min_frame_x_ * scale_ + center_.x;
    }
 
-   top_ = min_frame_y_ * scale_ + center_.y();
+   top_ = min_frame_y_ * scale_ + center_.y;
 
    if (top_ < min_frame_y_){
-      center_.setY(center_.y() - (top_ - min_frame_y_));
+      center_.y = center_.y - (top_ - min_frame_y_);
       top_ =  min_frame_y_;
    }
 
-   bottom_ = -min_frame_y_ * scale_ + center_.y();
+   bottom_ = -min_frame_y_ * scale_ + center_.y;
 
    if (bottom_ > -min_frame_y_){
-      center_.setY(center_.y() - (bottom_ + min_frame_y_));
+      center_.y = center_.y - (bottom_ + min_frame_y_);
       bottom_ = -min_frame_y_;
-      top_ = min_frame_y_ * scale_ + center_.y();
+      top_ = min_frame_y_ * scale_ + center_.y;
    }
 }
 

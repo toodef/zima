@@ -1,44 +1,70 @@
 #pragma once
 
-#include <QtWidgets/QMainWindow>
-#include <QtOpenGL/QGLWidget>
-#include <QtGui/QOpenGLBuffer>
-#include <QtGui/QOpenGLVertexArrayObject>
-#include <QtGui/QOpenGLShader>
-#include <QtGui/QOpenGLTexture>
-#include <QtGui/QOpenGLFramebufferObject>
-#include <QtGui/QWheelEvent>
+#ifdef _MSC_VER
+   #include <windows.h>
+#endif
 
+#include <GL/glew.h>
 #include <GL/gl.h>
 
 #include <iostream>
 
 #include "../image/image.hpp"
 
-class renderer_t : public QGLWidget
+class renderer_t
 {
-   Q_OBJECT
-
 public:
-   explicit renderer_t( QWidget * parent = nullptr );
-   ~renderer_t() override;
+   explicit renderer_t();
+   ~renderer_t();
 
    void set_image( std::shared_ptr<zimage_t> const & image );
 
    void set_min_threshold(float min);
    void set_max_threshold(float max);
 
-protected:
-   void initializeGL() override;
-   void paintGL() override;
-   void resizeGL(int width, int height) override;
+   void initialize();
+   void redraw();
+   void resize(int width, int height);
+
+   void on_wheel(int delta, int x, int y);
+   void on_mouse_move(int x_offset, int y_offset);
 
 private:
+   void set_geometry();
+
+   template<typename T>
+   struct vec_t{
+      T x, y;
+
+      vec_t() = default;
+      vec_t(T _x, T _y): x(_x), y(_y){}
+
+      vec_t operator + (vec_t const & vec){
+         return vec_t(this->x + vec.x, this->y + vec.y);
+      }
+
+      vec_t operator - (vec_t const & vec){
+         return vec_t(this->x - vec.x, this->y - vec.y);
+      }
+
+      vec_t operator * (T val){
+         return vec_t(this->x * val, this->y * val);
+      }
+
+      void operator += (vec_t const & vec){
+         this->x += vec.x;
+         this->y += vec.y;
+      }
+   };
+
+   typedef vec_t<int> veci_t;
+   typedef vec_t<float> vecf_t;
+
    struct frame_t{
       frame_t();
 
-      void move( QPoint const & prev_pos, QPoint const & new_pos );
-      void scale( float scale, QPoint const & position );
+      void move(veci_t const & offset);
+      void scale(float scale, veci_t const & position);
       void resize(size_t width, size_t height);
 
       void set_image_size(size_t img_width, size_t img_height);
@@ -50,7 +76,7 @@ private:
 
       void calc_frame();
 
-      QVector2D center_;
+      vecf_t center_;
       float scale_;
 
       float min_frame_x_, min_frame_y_;
@@ -61,23 +87,9 @@ private:
       size_t width_, height_;
    };
 
-   void set_geometry();
-
-   void wheelEvent( QWheelEvent * event ) override;
-   void mouseMoveEvent( QMouseEvent * event ) override;
-   void mouseReleaseEvent( QMouseEvent * event ) override;
-
-   std::shared_ptr<QOpenGLVertexArrayObject> vertex_array_obj_;
-   std::shared_ptr<QOpenGLBuffer> vertex_buffer_, index_buffer_;
-
-   std::shared_ptr<QOpenGLShader> vertex_shader_, fragment_shader_;
-   std::shared_ptr<QOpenGLShaderProgram> program_;
-
    std::shared_ptr<zimage_t> image_;
 
    float min_, max_;
-
-   QPoint intermediate_pos_;
 
    std::shared_ptr<frame_t> frame_;
 
@@ -85,28 +97,33 @@ private:
 
    bool is_init_;
 
-   bool is_moved_;
+   size_t width_, height_;
+
+   GLuint shader_program_;
+   GLint min_uniform_, max_uniform_;
+   GLuint texture_;
+   GLuint vertex_buffer_;
 
    // Shader sources
    const std::string vertex_shader_src_ = "#version 330\n"
          "layout(location = 0) in vec2 position;"
          "layout(location = 2) in vec2 texcoord;"
-         "out vec2 Texcoord; "
+         "out vec2 out_texcoord; "
          "void main()"
          "{"
-         "   Texcoord = texcoord;"
+         "   out_texcoord = texcoord;"
          "   gl_Position = vec4(position, 0.0, 1.0);"
          "}";
 
    const std::string fragment_shader_src_ = "#version 330\n"
-      "in vec2 Texcoord;"
+      "in vec2 out_texcoord;"
       "uniform sampler2D tex;"
       "uniform float min;"
       "uniform float max;"
       "out vec4 out_color;"
       "void main()"
       "{"
-      "   float val = texture(tex, Texcoord).r;"
+      "   float val = texture(tex, out_texcoord).r;"
       "   if (val < min || val > max)"
       "      out_color = vec4(0, 0, 0, 1);"
       "   else{"

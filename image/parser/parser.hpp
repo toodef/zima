@@ -53,6 +53,7 @@ private:
    std::string projection_;
 
    GDALDatasetH data_;
+   GDALRasterBandH raster_band_;
 };
 
 class exr_parser_t: public parser_t{
