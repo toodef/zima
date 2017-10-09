@@ -1,16 +1,13 @@
 #include <QVBoxLayout>
+#include <QMenuBar>
+
 #include <iostream>
 
 #include "qt_backend.hpp"
 
-window_ptr_t qt_backend_t::create_window(std::string const & title)
+main_window_ptr_t qt_backend_t::create_window(std::string const & title)
 {
-   return window_ptr_t(new qt_window_t(title));
-}
-
-menu_ptr_t qt_backend_t::create_menu(window_ptr_t &parent)
-{
-   return menu_ptr_t(new qt_menu_t());
+   return main_window_ptr_t(new qt_main_window_t(title));
 }
 
 app_ptr_t qt_backend_t::create_app(int argc, char ** argv, std::string const & name)
@@ -24,7 +21,7 @@ app_ptr_t qt_backend_t::create_app(int argc, char ** argv, std::string const & n
 qt_app_t::qt_app_t(int argc, char **argv, std::string const & name):
      app_(std::make_unique<QApplication>(argc, argv))
 {
-   main_window_ = std::make_shared<qt_window_t>(name);
+   main_window_ = std::make_shared<qt_main_window_t>(name);
    app_->setAttribute( Qt::AA_UseDesktopOpenGL );
 
    Q_INIT_RESOURCE(resource);
@@ -36,32 +33,16 @@ void qt_app_t::start()
    app_->exec();
 }
 
-window_ptr_t qt_app_t::window()
+main_window_ptr_t qt_app_t::window()
 {
    return main_window_;
 }
 
-qt_window_t::qt_window_t(std::string const & title):
-     title_(title)
-   , last_layout_idx_(0)
+qt_window_t::qt_window_t():
+   last_layout_idx_(0)
 {
-   window_.setWindowTitle(title.c_str());
-
-   QIcon ico(":/bin/logo_128.png");
-   window_.setWindowIcon(ico);
-
    auto layout = new QVBoxLayout();
    layouts_.push_back(layout);
-   auto widget = new QWidget();
-   widget->setLayout(layout);
-   window_.setCentralWidget(widget);
-
-
-}
-
-void qt_window_t::show()
-{
-   window_.show();
 }
 
 void qt_window_t::start_horisontal()
@@ -87,8 +68,6 @@ void qt_window_t::cancel()
 
 qt_window_t::~qt_window_t()
 {
-   for (auto & item: layouts_)
-      delete item;
 }
 
 line_edit_ptr_t qt_window_t::add_line_edit(std::string const & label, std::string const & default_value, elements_interdependence_t placement)
@@ -114,7 +93,56 @@ gl_layout_ptr_t qt_window_t::add_gl_layout()
    return unit;
 }
 
-void qt_window_t::resize(size_t width, size_t height)
+track_bar_ptr_t qt_window_t::add_track_bar()
+{
+   track_bar_ptr_t unit = std::make_shared<qt_track_bar_t>();
+   layouts_[last_layout_idx_]->addLayout((QBoxLayout *)unit->instance());
+   return unit;
+}
+
+void *qt_window_t::instance()
+{
+   return layouts_[last_layout_idx_];
+}
+
+dock_window_ptr_t qt_main_window_t::add_dock_window(std::string const &title, window_side_t side)
+{
+   dock_window_ptr_t dock = std::make_shared<qt_dock_window_t>(title, shared_from_this());
+
+   window_.addDockWidget(Qt::LeftDockWidgetArea, (QDockWidget *)dock->instance());
+
+   return dock;
+}
+
+void * qt_main_window_t::instance()
+{
+   return &window_;
+}
+
+void qt_main_window_t::show()
+{
+   window_.show();
+}
+
+qt_main_window_t::qt_main_window_t(std::string const & title)
+{
+   window_obj_ = std::make_shared<qt_window_t>();
+
+   window_.setWindowTitle(title.c_str());
+
+   QIcon ico(":/bin/logo_128.png");
+   window_.setWindowIcon(ico);
+   auto widget = new QWidget();
+   widget->setLayout((QBoxLayout *)window_obj_->instance());
+   window_.setCentralWidget(widget);
+}
+
+menu_ptr_t qt_main_window_t::add_menu_item(std::string const &name)
+{
+   return menu_ptr_t(new qt_menu_t(shared_from_this(), name));
+}
+
+void qt_main_window_t::resize(size_t width, size_t height)
 {
    window_.resize(width, height);
 }
@@ -250,4 +278,115 @@ void qt_gl_layout_t::mouseMoveEvent(QMouseEvent *event)
 void qt_gl_layout_t::mouseReleaseEvent(QMouseEvent *event)
 {
    is_moved_ = false;
+}
+
+qt_track_bar_t::qt_track_bar_t():
+     layout_(std::make_shared<QHBoxLayout>())
+   , value_(0)
+{
+   layout_->addWidget(this);
+}
+
+void qt_track_bar_t::set_min(float value) {min_ = value;}
+void qt_track_bar_t::set_max(float value) {max_ = value;}
+
+void qt_track_bar_t::resizeEvent(QResizeEvent *event)
+{
+   QSize size = this->size();
+
+   size_t slider_length = (size_t)size.height();
+
+   setMaximum((int)slider_length);
+   setMinimum(0);
+
+   setValue((int)(value_ * slider_length));
+}
+
+float qt_track_bar_t::get_value()
+{
+   return value_;
+}
+
+void * qt_track_bar_t::instance()
+{
+   return layout_.get();
+}
+
+qt_dock_window_t::qt_dock_window_t(const std::string & title, main_window_ptr_t & parent_window) :
+   dock_window_t(title, parent_window)
+{
+   window_ = std::make_shared<QDockWidget>(QString(title.c_str()), (QMainWindow *)parent_window->instance());
+
+   parent_window_ = std::make_shared<qt_window_t>();
+   fake_widget_ = std::make_shared<QWidget>();
+   fake_widget_->setLayout((QBoxLayout *)parent_window_->instance());
+   window_->setWidget(fake_widget_.get());
+}
+
+void * qt_dock_window_t::instance()
+{
+   return window_.get();
+}
+
+void qt_dock_window_t::show()
+{
+   window_->show();
+}
+
+qt_menu_t::qt_menu_t(main_window_ptr_t & parent_window, std::string const & name) : menu_t(parent_window, name)
+{
+   menu_.reset(((QMainWindow *)parent_window->instance())->menuBar()->addMenu(name.c_str()));
+}
+
+qt_menu_t::qt_menu_t(menu_ptr_t & parent_menu, std::string const & name) : menu_t(parent_menu, name)
+{
+   menu_.reset(((QMenu *)(parent_menu->instance()))->addMenu(name.c_str()));
+}
+
+void * qt_menu_t::instance()
+{
+   if (menu_)
+      return menu_.get();
+   else
+      return nullptr;
+}
+
+menu_ptr_t qt_menu_t::add_menu(std::string const & name)
+{
+   return std::make_shared<qt_menu_t>(shared_from_this(), name);
+}
+
+menu_action_ptr_t qt_menu_t::add_menu_action(std::string const & name)
+{
+   return std::make_shared<qt_menu_action_t>(shared_from_this(), name);
+}
+
+qt_menu_action_t::qt_menu_action_t(menu_ptr_t & parent_menu, std::string const & name) : menu_action_t(parent_menu, name)
+{
+   connector_.action_ = std::make_shared<QAction>(name.c_str(), ((QMenu *)parent_menu->instance()));
+   ((QMenu *)parent_menu->instance())->addAction(connector_.action_.get());
+}
+
+void * qt_menu_action_t::instance()
+{
+   return connector_.action_.get();
+}
+
+void qt_menu_action_t::set_callback(std::function<void()> const &callback)
+{
+   connector_.set_callback(callback);
+}
+
+qt_menu_action_connector_t::qt_menu_action_connector_t()
+{}
+
+void qt_menu_action_connector_t::on_triggered()
+{
+   callback_();
+}
+
+void qt_menu_action_connector_t::set_callback(std::function<void()> const &callback)
+{
+   callback_ = callback;
+   connect(action_.get(), SIGNAL(triggered()), this, SLOT(on_triggered()));
 }
