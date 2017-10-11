@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <vector>
 
 enum elements_interdependence_t{
    EP_vertical = 0,
@@ -89,6 +90,9 @@ typedef std::shared_ptr<window_t> window_ptr_t;
 class menu_t;
 typedef std::shared_ptr<menu_t> menu_ptr_t;
 
+class file_dialog_t;
+typedef std::shared_ptr<file_dialog_t> file_dialog_ptr_t;
+
 class main_window_t: public window_t {
 public:
    virtual void * instance() = 0;
@@ -119,6 +123,8 @@ public:
    }
 
    virtual menu_ptr_t add_menu_item(std::string const & name) = 0;
+
+   virtual file_dialog_ptr_t add_file_dialog(std::string const & title) = 0;
 
    virtual void start_horisontal() {
       window_obj_->start_horisontal();
@@ -207,9 +213,18 @@ private:
    menu_action_t() = default;
 };
 
+class file_dialog_t{
+public:
+   explicit file_dialog_t(std::string const & title){};
+
+   virtual void set_file_types(std::vector<std::string> const & types) = 0;
+   virtual void set_callback(std::function<void(std::vector<std::string> const &)> const & callback) = 0;
+   virtual void show() = 0;
+};
+
 class app_t {
 public:
-   virtual void start() = 0;
+   virtual int start() = 0;
    virtual main_window_ptr_t window() = 0;
 
 protected:

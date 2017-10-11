@@ -27,10 +27,10 @@ qt_app_t::qt_app_t(int argc, char **argv, std::string const & name):
    Q_INIT_RESOURCE(resource);
 }
 
-void qt_app_t::start()
+int qt_app_t::start()
 {
    main_window_->show();
-   app_->exec();
+   return app_->exec();
 }
 
 main_window_ptr_t qt_app_t::window()
@@ -140,6 +140,11 @@ qt_main_window_t::qt_main_window_t(std::string const & title)
 menu_ptr_t qt_main_window_t::add_menu_item(std::string const &name)
 {
    return menu_ptr_t(new qt_menu_t(shared_from_this(), name));
+}
+
+file_dialog_ptr_t qt_main_window_t::add_file_dialog(std::string const & title)
+{
+   return std::make_shared<qt_file_dialog_t>(title);
 }
 
 void qt_main_window_t::resize(size_t width, size_t height)
@@ -377,9 +382,6 @@ void qt_menu_action_t::set_callback(std::function<void()> const &callback)
    connector_.set_callback(callback);
 }
 
-qt_menu_action_connector_t::qt_menu_action_connector_t()
-{}
-
 void qt_menu_action_connector_t::on_triggered()
 {
    callback_();
@@ -389,4 +391,55 @@ void qt_menu_action_connector_t::set_callback(std::function<void()> const &callb
 {
    callback_ = callback;
    connect(action_.get(), SIGNAL(triggered()), this, SLOT(on_triggered()));
+}
+
+qt_file_dialog_t::qt_file_dialog_t(std::string const & title) : file_dialog_t(title)
+{
+   connector_.file_dialog_ = std::make_shared<QFileDialog>();
+   connector_.file_dialog_->setWindowTitle(title.c_str());
+}
+
+void qt_file_dialog_t::set_file_types(std::vector<std::string> const & types)
+{
+   QStringList filters;
+
+   for (auto & type: types)
+   filters << type.c_str();
+
+   connector_.file_dialog_->setNameFilters(filters);
+}
+
+void qt_file_dialog_t::set_callback(std::function<void(std::vector<std::string> const &)> const & callback)
+{
+   connector_.set_callback(callback);
+}
+
+void qt_file_dialog_t::show()
+{
+   connector_.file_dialog_->show();
+}
+
+void qt_file_dialog_connector_t::set_callback(std::function<void(std::vector<std::string> const &)> const & callback)
+{
+   callback_ = callback;
+
+}
+
+void qt_file_dialog_connector_t::file_selected(QStringList files)
+{
+   if (!callback_)
+      return;
+
+   std::vector<std::string> data;
+
+   for (size_t i = 0; i < files.length(); ++i)
+      data.push_back(files[i].toStdString());
+
+   callback_(data);
+}
+
+qt_file_dialog_connector_t::qt_file_dialog_connector_t() : file_dialog_(std::make_shared<QFileDialog>())
+{
+   file_dialog_->setViewMode(QFileDialog::Detail);
+   connect(file_dialog_.get(), SIGNAL(filesSelected(QStringList)), this, SLOT(file_selected(QStringList)));
 }

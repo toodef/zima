@@ -10,6 +10,7 @@
 #include <QtGui/QWheelEvent>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QDockWidget>
+#include <QtWidgets/QFileDialog>
 #include <QAction>
 #include <QMenu>
 
@@ -117,6 +118,7 @@ public:
    void * instance() override;
 
    menu_ptr_t add_menu_item(std::string const & name) override;
+   file_dialog_ptr_t add_file_dialog(std::string const & title) override;
 
    void resize(size_t width, size_t height) override;
    dock_window_ptr_t add_dock_window(std::string const & title, window_side_t side) override;
@@ -153,9 +155,10 @@ private:
 };
 
 class qt_menu_action_connector_t: public QObject{
-Q_OBJECT
+   Q_OBJECT
+
 public:
-   qt_menu_action_connector_t();
+   qt_menu_action_connector_t() = default;
 
    void set_callback(std::function<void()> const & callback);
 
@@ -168,7 +171,7 @@ private slots:
    Q_SLOT void on_triggered();
 };
 
-class qt_menu_action_t: public menu_action_t, public std::enable_shared_from_this<menu_action_t>{
+class qt_menu_action_t: public menu_action_t {
 public:
    explicit qt_menu_action_t(menu_ptr_t & parent_menu, std::string const & name);
 
@@ -182,11 +185,40 @@ private:
    qt_menu_action_connector_t connector_;
 };
 
+class qt_file_dialog_connector_t: public QObject{
+   Q_OBJECT
+
+public:
+   qt_file_dialog_connector_t();
+
+   void set_callback(std::function<void(std::vector<std::string> const &)> const & callback);
+
+   std::shared_ptr<QFileDialog> file_dialog_;
+
+private:
+   std::function<void(std::vector<std::string> const &)> callback_;
+
+private slots:
+   void file_selected(QStringList files);
+};
+
+class qt_file_dialog_t: public file_dialog_t{
+public:
+   explicit qt_file_dialog_t(std::string const & title);
+
+   void set_file_types(std::vector<std::string> const & types) override;
+   void set_callback(std::function<void(std::vector<std::string> const &)> const & callback) override;
+   void show() override;
+
+private:
+   qt_file_dialog_connector_t connector_;
+};
+
 class qt_app_t: public app_t{
 public:
    qt_app_t(int argc, char ** argv, std::string const & name);
 
-   void start() override;
+   int start() override;
    main_window_ptr_t window() override;
 
 private:
