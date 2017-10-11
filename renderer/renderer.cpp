@@ -101,6 +101,9 @@ void renderer_t::set_max_threshold(float max) { max_ = max; }
 
 void renderer_t::set_image(std::shared_ptr<zimage_t> const & image)
 {
+   if (!image_)
+      return;
+
    image_ = image;
 
    min_ = image_->get_min();
