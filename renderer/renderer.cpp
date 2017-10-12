@@ -101,7 +101,7 @@ void renderer_t::set_max_threshold(float max) { max_ = max; }
 
 void renderer_t::set_image(std::shared_ptr<zimage_t> const & image)
 {
-   if (!image_)
+   if (!image)
       return;
 
    image_ = image;
@@ -176,6 +176,22 @@ renderer_t::~renderer_t()
 
    glBindTexture(GL_TEXTURE_2D, 0);
    glDeleteTextures(1, &texture_);
+}
+
+float renderer_t::get_min_threshold() const
+{
+   if (!image_)
+      return 0;
+
+   return image_->get_min();
+}
+
+float renderer_t::get_max_threshold() const
+{
+   if (!image_)
+      return 0;
+
+   return image_->get_max();
 }
 
 renderer_t::frame_t::frame_t():

@@ -22,6 +22,9 @@ public:
    void set_min_threshold(float min);
    void set_max_threshold(float max);
 
+   float get_min_threshold() const;
+   float get_max_threshold() const;
+
    void initialize();
    void redraw();
    void resize(int width, int height);
@@ -132,3 +135,5 @@ private:
       "   }"
       "}";
 };
+
+typedef std::shared_ptr<renderer_t> renderer_ptr_t;
