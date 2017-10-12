@@ -4,7 +4,7 @@
 
 class color_range_t{
 public:
-   color_range_t(main_window_ptr_t & window) {
+   explicit color_range_t(main_window_ptr_t & window) {
       dock_ = window->add_dock_window("Color range", WS_right);
 
       dock_->start_horisontal();
@@ -20,11 +20,27 @@ public:
       dock_->show();
    }
 
+   void add_renderer(renderer_ptr_t const & renderer){
+      renderer_ = renderer;
+
+      min_trackbar_->set_callback([this](float min){this->renderer_->set_min_threshold(min);});
+      max_trackbar_->set_callback([this](float max){this->renderer_->set_max_threshold(max);});
+
+      min_trackbar_->set_max(renderer_->get_max_threshold());
+      max_trackbar_->set_max(renderer_->get_max_threshold());
+      max_trackbar_->set_value(renderer_->get_max_threshold());
+   }
+
+private:
    dock_window_ptr_t dock_;
 
    line_edit_ptr_t min_line_edit_, max_line_edit_;
    track_bar_ptr_t min_trackbar_, max_trackbar_;
+
+   renderer_ptr_t renderer_;
 };
+
+typedef std::shared_ptr<color_range_t> color_range_ptr_t;
 
 class zima_t{
 public:
@@ -79,8 +95,10 @@ private:
    }
 
    void show_color_range(){
-      if (!color_range_)
+      if (!color_range_) {
          color_range_ = std::make_shared<color_range_t>(app_->window());
+         color_range_->add_renderer(renderer_);
+      }
 
       color_range_->show();
    }
@@ -89,15 +107,9 @@ private:
       if (!file_dialog_)
          file_dialog_ = app_->window()->add_file_dialog("Open file");
 
-      file_dialog_->show();
-      file_dialog_->set_callback(std::bind(&zima_t::set_image, this, std::placeholders::_1));
-   }
-
-   void set_image(std::vector<std::string> const & files){
-//      image_ = std::make_shared<zimage_t>(files[0]);
-      std::cout << "file: " << files[0] << std::endl;
-//      renderer_->set_image(image_);
-//      renderer_->redraw();
+      image_ = std::make_shared<zimage_t>(file_dialog_->get_file());
+      renderer_->set_image(image_);
+      renderer_->redraw();
    }
 
    gui_t & gui_;
@@ -111,7 +123,7 @@ private:
    std::shared_ptr<renderer_t> renderer_;
    std::shared_ptr<zimage_t> image_;
 
-   std::shared_ptr<color_range_t> color_range_;
+   color_range_ptr_t color_range_;
 };
 
 int main( int argc, char ** argv )

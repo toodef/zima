@@ -65,23 +65,52 @@ private:
    QPoint intermediate_pos_;
 };
 
-class qt_track_bar_t: public track_bar_t, private QSlider{
+class qt_track_bar_connector_t: private QSlider{
+   Q_OBJECT
+
 public:
-   qt_track_bar_t();
+   qt_track_bar_connector_t();
 
-   void set_min(float value) override;
-   void set_max(float value) override;
+   void set_min(float value);
+   void set_max(float value);
 
-   float get_value() override;
+   float get_value() const;
+   void set_value(float value);
 
-   void * instance() override;
+   void set_callback(std::function<void(float)> const & callback);
+
+   void * instance();
 
 private:
    void resizeEvent(QResizeEvent * event) override;
 
    float value_, min_, max_;
+   bool is_resized_;
 
    layout_ptr_t layout_;
+
+   std::function<void(float)> callback_;
+
+private slots:
+   void set_value_slot(int value);
+};
+
+class qt_track_bar_t: public track_bar_t {
+public:
+   qt_track_bar_t() = default;
+
+   void set_min(float value) override;
+   void set_max(float value) override;
+
+   float get_value() const override;
+   void set_value(float value) override;
+
+   void set_callback(std::function<void(float)> const & callback) override;
+
+   void * instance() override;
+
+private:
+   qt_track_bar_connector_t connector_;
 };
 
 class qt_window_t: public window_t{
@@ -185,33 +214,15 @@ private:
    qt_menu_action_connector_t connector_;
 };
 
-class qt_file_dialog_connector_t: public QObject{
-   Q_OBJECT
-
-public:
-   qt_file_dialog_connector_t();
-
-   void set_callback(std::function<void(std::vector<std::string> const &)> const & callback);
-
-   std::shared_ptr<QFileDialog> file_dialog_;
-
-private:
-   std::function<void(std::vector<std::string> const &)> callback_;
-
-private slots:
-   void file_selected(QStringList files);
-};
-
 class qt_file_dialog_t: public file_dialog_t{
 public:
    explicit qt_file_dialog_t(std::string const & title);
 
    void set_file_types(std::vector<std::string> const & types) override;
-   void set_callback(std::function<void(std::vector<std::string> const &)> const & callback) override;
-   void show() override;
+   std::string get_file();
 
 private:
-   qt_file_dialog_connector_t connector_;
+   std::shared_ptr<QFileDialog> file_dialog_;
 };
 
 class qt_app_t: public app_t{

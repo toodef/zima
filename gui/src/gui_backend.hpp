@@ -46,13 +46,12 @@ public:
    virtual void set_min(float value) = 0;
    virtual void set_max(float value) = 0;
 
-   virtual float get_value() = 0;
-   void set_callback(std::function<void(float)> const & callback) {callback_ = callback;}
+   virtual float get_value() const = 0;
+   virtual void set_value(float value) = 0;
+
+   virtual void set_callback(std::function<void(float)> const & callback) = 0;
 
    virtual void * instance() = 0;
-
-protected:
-   std::function<void(float)> callback_;
 };
 
 typedef std::shared_ptr<track_bar_t> track_bar_ptr_t;
@@ -218,8 +217,7 @@ public:
    explicit file_dialog_t(std::string const & title){};
 
    virtual void set_file_types(std::vector<std::string> const & types) = 0;
-   virtual void set_callback(std::function<void(std::vector<std::string> const &)> const & callback) = 0;
-   virtual void show() = 0;
+   virtual std::string get_file() = 0;
 };
 
 class app_t {

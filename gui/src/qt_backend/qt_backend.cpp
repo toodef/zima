@@ -285,36 +285,60 @@ void qt_gl_layout_t::mouseReleaseEvent(QMouseEvent *event)
    is_moved_ = false;
 }
 
-qt_track_bar_t::qt_track_bar_t():
+qt_track_bar_connector_t::qt_track_bar_connector_t():
      layout_(std::make_shared<QHBoxLayout>())
    , value_(0)
+   , is_resized_(false)
 {
    layout_->addWidget(this);
+   connect(this, SIGNAL(valueChanged(int)), this, SLOT(set_value_slot(int)));
 }
 
-void qt_track_bar_t::set_min(float value) {min_ = value;}
-void qt_track_bar_t::set_max(float value) {max_ = value;}
+void qt_track_bar_connector_t::set_min(float value) {min_ = value;}
+void qt_track_bar_connector_t::set_max(float value) {max_ = value;}
 
-void qt_track_bar_t::resizeEvent(QResizeEvent *event)
+void qt_track_bar_connector_t::resizeEvent(QResizeEvent * event)
 {
    QSize size = this->size();
 
-   size_t slider_length = (size_t)size.height();
+   int slider_length = size.height();
 
-   setMaximum((int)slider_length);
+   setMaximum(slider_length);
    setMinimum(0);
 
-   setValue((int)(value_ * slider_length));
+   is_resized_ = true;
+   setValue((int)(slider_length * value_ / (max_ - min_)));
+   is_resized_ = false;
 }
 
-float qt_track_bar_t::get_value()
+float qt_track_bar_connector_t::get_value() const
 {
    return value_;
 }
 
-void * qt_track_bar_t::instance()
+void * qt_track_bar_connector_t::instance()
 {
    return layout_.get();
+}
+
+void qt_track_bar_connector_t::set_value(float value)
+{
+   value_ = (value - min_) / (max_ - min_);
+   resizeEvent(nullptr);
+}
+
+void qt_track_bar_connector_t::set_callback(std::function<void(float)> const & callback)
+{
+   callback_ = callback;
+}
+
+void qt_track_bar_connector_t::set_value_slot(int value)
+{
+   if (is_resized_)
+      return;
+
+   value_ = min_ + (max_ - min_) * ((float)value / size().height());
+   callback_(value_);
 }
 
 qt_dock_window_t::qt_dock_window_t(const std::string & title, main_window_ptr_t & parent_window) :
@@ -395,8 +419,8 @@ void qt_menu_action_connector_t::set_callback(std::function<void()> const &callb
 
 qt_file_dialog_t::qt_file_dialog_t(std::string const & title) : file_dialog_t(title)
 {
-   connector_.file_dialog_ = std::make_shared<QFileDialog>();
-   connector_.file_dialog_->setWindowTitle(title.c_str());
+   file_dialog_ = std::make_shared<QFileDialog>();
+   file_dialog_->setWindowTitle(title.c_str());
 }
 
 void qt_file_dialog_t::set_file_types(std::vector<std::string> const & types)
@@ -406,40 +430,40 @@ void qt_file_dialog_t::set_file_types(std::vector<std::string> const & types)
    for (auto & type: types)
    filters << type.c_str();
 
-   connector_.file_dialog_->setNameFilters(filters);
+   file_dialog_->setNameFilters(filters);
 }
 
-void qt_file_dialog_t::set_callback(std::function<void(std::vector<std::string> const &)> const & callback)
+std::string qt_file_dialog_t::get_file()
+{
+   return file_dialog_->getOpenFileName().toStdString();
+}
+
+void qt_track_bar_t::set_min(float value)
+{
+   connector_.set_min(value);
+}
+
+void qt_track_bar_t::set_max(float value)
+{
+   connector_.set_max(value);
+}
+
+float qt_track_bar_t::get_value() const
+{
+   return connector_.get_value();
+}
+
+void qt_track_bar_t::set_value(float value)
+{
+   connector_.set_value(value);
+}
+
+void qt_track_bar_t::set_callback(std::function<void(float)> const & callback)
 {
    connector_.set_callback(callback);
 }
 
-void qt_file_dialog_t::show()
+void * qt_track_bar_t::instance()
 {
-   connector_.file_dialog_->show();
-}
-
-void qt_file_dialog_connector_t::set_callback(std::function<void(std::vector<std::string> const &)> const & callback)
-{
-   callback_ = callback;
-
-}
-
-void qt_file_dialog_connector_t::file_selected(QStringList files)
-{
-   if (!callback_)
-      return;
-
-   std::vector<std::string> data;
-
-   for (size_t i = 0; i < files.length(); ++i)
-      data.push_back(files[i].toStdString());
-
-   callback_(data);
-}
-
-qt_file_dialog_connector_t::qt_file_dialog_connector_t() : file_dialog_(std::make_shared<QFileDialog>())
-{
-   file_dialog_->setViewMode(QFileDialog::Detail);
-   connect(file_dialog_.get(), SIGNAL(filesSelected(QStringList)), this, SLOT(file_selected(QStringList)));
+   return connector_.instance();
 }
