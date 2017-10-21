@@ -4,7 +4,7 @@
 
 class color_range_t{
 public:
-   explicit color_range_t(main_window_ptr_t & window) {
+   explicit color_range_t(main_window_ptr_t & window, gl_layout_ptr_t const & gl_layout) : gl_layout_(gl_layout){
       dock_ = window->add_dock_window("Color range", WS_right);
 
       dock_->start_horisontal();
@@ -23,8 +23,8 @@ public:
    void add_renderer(renderer_ptr_t const & renderer){
       renderer_ = renderer;
 
-      min_trackbar_->set_callback([this](float min){this->renderer_->set_min_threshold(min);});
-      max_trackbar_->set_callback([this](float max){this->renderer_->set_max_threshold(max);});
+      min_trackbar_->set_callback([this](float min){this->renderer_->set_min_threshold(min); this->gl_layout_->redraw();});
+      max_trackbar_->set_callback([this](float max){this->renderer_->set_max_threshold(max); this->gl_layout_->redraw();});
 
       min_trackbar_->set_max(renderer_->get_max_threshold());
       max_trackbar_->set_max(renderer_->get_max_threshold());
@@ -38,6 +38,7 @@ private:
    track_bar_ptr_t min_trackbar_, max_trackbar_;
 
    renderer_ptr_t renderer_;
+   gl_layout_ptr_t gl_layout_;
 };
 
 typedef std::shared_ptr<color_range_t> color_range_ptr_t;
@@ -96,7 +97,7 @@ private:
 
    void show_color_range(){
       if (!color_range_) {
-         color_range_ = std::make_shared<color_range_t>(app_->window());
+         color_range_ = std::make_shared<color_range_t>(app_->window(), gl_layout_);
          color_range_->add_renderer(renderer_);
       }
 

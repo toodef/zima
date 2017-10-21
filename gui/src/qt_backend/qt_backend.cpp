@@ -285,13 +285,21 @@ void qt_gl_layout_t::mouseReleaseEvent(QMouseEvent *event)
    is_moved_ = false;
 }
 
+void qt_gl_layout_t::redraw()
+{
+   paintGL();
+   update();
+}
+
 qt_track_bar_connector_t::qt_track_bar_connector_t():
      layout_(std::make_shared<QHBoxLayout>())
    , value_(0)
-   , is_resized_(false)
+   , is_value_canged_inside_(false)
+   , min_(0), max_(1)
 {
    layout_->addWidget(this);
    connect(this, SIGNAL(valueChanged(int)), this, SLOT(set_value_slot(int)));
+   setMinimum(0);
 }
 
 void qt_track_bar_connector_t::set_min(float value) {min_ = value;}
@@ -299,16 +307,14 @@ void qt_track_bar_connector_t::set_max(float value) {max_ = value;}
 
 void qt_track_bar_connector_t::resizeEvent(QResizeEvent * event)
 {
-   QSize size = this->size();
+   if (size().height() < 1)
+      return;
 
-   int slider_length = size.height();
+   is_value_canged_inside_ = true;
+   setMaximum(size().height());
+   is_value_canged_inside_ = false;
 
-   setMaximum(slider_length);
-   setMinimum(0);
-
-   is_resized_ = true;
-   setValue((int)(slider_length * value_ / (max_ - min_)));
-   is_resized_ = false;
+   set_value(value_);
 }
 
 float qt_track_bar_connector_t::get_value() const
@@ -321,10 +327,15 @@ void * qt_track_bar_connector_t::instance()
    return layout_.get();
 }
 
-void qt_track_bar_connector_t::set_value(float value)
+float qt_track_bar_connector_t::set_value(float value)
 {
-   value_ = (value - min_) / (max_ - min_);
-   resizeEvent(nullptr);
+   value_ = value > max_ ? max_ : (value < min_ ? min_ : value);
+
+   is_value_canged_inside_ = true;
+   setValue(value_to_slider_space(value_));
+   is_value_canged_inside_ = false;
+
+   return value_;
 }
 
 void qt_track_bar_connector_t::set_callback(std::function<void(float)> const & callback)
@@ -334,11 +345,20 @@ void qt_track_bar_connector_t::set_callback(std::function<void(float)> const & c
 
 void qt_track_bar_connector_t::set_value_slot(int value)
 {
-   if (is_resized_)
-      return;
+   if (is_value_canged_inside_) return;
 
-   value_ = min_ + (max_ - min_) * ((float)value / size().height());
+   value_ = value_from_slider_space(value);
    callback_(value_);
+}
+
+float qt_track_bar_connector_t::value_from_slider_space(int value) const
+{
+   return min_ + (max_ - min_) * ((float)value / (float)size().height());
+}
+
+int qt_track_bar_connector_t::value_to_slider_space(float value) const
+{
+   return static_cast<int>(size().height() * (value_ / (max_ - min_)));
 }
 
 qt_dock_window_t::qt_dock_window_t(const std::string & title, main_window_ptr_t & parent_window) :
@@ -453,9 +473,11 @@ float qt_track_bar_t::get_value() const
    return connector_.get_value();
 }
 
-void qt_track_bar_t::set_value(float value)
+float qt_track_bar_t::set_value(float value)
 {
-   connector_.set_value(value);
+   std::cout << "main" << std::endl;
+
+   return connector_.set_value(value);
 }
 
 void qt_track_bar_t::set_callback(std::function<void(float)> const & callback)

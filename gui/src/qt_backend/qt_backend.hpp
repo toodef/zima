@@ -44,9 +44,30 @@ private:
    QLabel text_layout_;
 };
 
+class qt_track_bar_t: public track_bar_t {
+public:
+   qt_track_bar_t() = default;
+
+   void set_min(float value) override;
+   void set_max(float value) override;
+
+   float get_value() const override;
+   float set_value(float value) override;
+
+   void set_callback(std::function<void(float)> const & callback) override;
+
+   void * instance() override;
+
+private:
+   qt_track_bar_connector_t connector_;
+};
+
 class qt_gl_layout_t: public gl_layout_t, QGLWidget{
 public:
    qt_gl_layout_t();
+
+   void redraw();
+
    void * instance() const override;
 
 private:
@@ -75,7 +96,7 @@ public:
    void set_max(float value);
 
    float get_value() const;
-   void set_value(float value);
+   float set_value(float value);
 
    void set_callback(std::function<void(float)> const & callback);
 
@@ -84,8 +105,11 @@ public:
 private:
    void resizeEvent(QResizeEvent * event) override;
 
+   int value_to_slider_space(float value) const;
+   float value_from_slider_space(int value) const;
+
    float value_, min_, max_;
-   bool is_resized_;
+   bool is_value_canged_inside_;
 
    layout_ptr_t layout_;
 
@@ -93,24 +117,6 @@ private:
 
 private slots:
    void set_value_slot(int value);
-};
-
-class qt_track_bar_t: public track_bar_t {
-public:
-   qt_track_bar_t() = default;
-
-   void set_min(float value) override;
-   void set_max(float value) override;
-
-   float get_value() const override;
-   void set_value(float value) override;
-
-   void set_callback(std::function<void(float)> const & callback) override;
-
-   void * instance() override;
-
-private:
-   qt_track_bar_connector_t connector_;
 };
 
 class qt_window_t: public window_t{

@@ -10,7 +10,45 @@ enum elements_interdependence_t{
    EP_horisontal
 };
 
-class line_edit_t{
+template <typename T>
+class value_object_t{
+public:
+   virtual T get_value() const = 0;
+   virtual T set_value(T value) = 0;
+
+   virtual void add_callback(std::function<void(T)> const & callback) {callbacks_.push_back(callback);}
+
+protected:
+   virtual T set_value_by_signal(T value) {
+      value_ = value;
+      return value_;
+   }
+
+   std::vector<std::function<void(T)>> callbacks_;
+
+   T value_;
+};
+
+class value_object_float_t;
+typedef std::shared_ptr<value_object_float_t> value_object_float_ptr_t;
+class value_object_str_t;
+typedef std::shared_ptr<value_object_str_t> value_object_str_ptr_t;
+
+class value_object_float_t: public value_object_t<float> {
+public:
+   virtual void bind_object(value_object_float_ptr_t const & object){
+      object->add_callback([this](float val){this->set_value_by_signal(val);});
+   }
+};
+
+class value_object_str_t: public value_object_t<float> {
+public:
+   virtual void bind_object(value_object_str_ptr_t const & object){
+      object->add_callback([this](float val){this->set_value_by_signal(val);});
+   }
+};
+
+class line_edit_t: public value_object_str_t {
 public:
    virtual void set_label(std::string const & label) = 0;
    virtual void set_value(std::string const & value) = 0;
@@ -25,6 +63,8 @@ typedef std::shared_ptr<line_edit_t> line_edit_ptr_t;
 
 class gl_layout_t{
 public:
+   virtual void redraw() = 0;
+
    virtual void * instance() const = 0;
 
    virtual void set_init_callback(std::function<void()> const & callback) {init_callback_ = callback;}
@@ -41,15 +81,15 @@ protected:
 
 typedef std::shared_ptr<gl_layout_t> gl_layout_ptr_t;
 
-class track_bar_t{
+class track_bar_t: public value_object_t<float>{
 public:
    virtual void set_min(float value) = 0;
    virtual void set_max(float value) = 0;
 
-   virtual float get_value() const = 0;
-   virtual void set_value(float value) = 0;
+//   virtual float get_value() const = 0;
+//   virtual float set_value(float value) = 0;
 
-   virtual void set_callback(std::function<void(float)> const & callback) = 0;
+//   virtual void set_callback(std::function<void(float)> const & callback) = 0;
 
    virtual void * instance() = 0;
 };
