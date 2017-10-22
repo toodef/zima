@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "../src/gui_backend.hpp"
+#include "gui_backend.hpp"
 
 class gui_t{
 public:

@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 14)
 
 option(QT_GUI_BACKEND "Qt gui framework" ON)
 
-set(SOURCE_FILES src/gui_backend.hpp src/qt_backend/qt_backend.hpp src/qt_backend/qt_backend.cpp include/gui.hpp src/gui.cpp)
-set(HEADRE_FILES src/gui_backend.hpp)
+set(SOURCE_FILES include/gui_backend.hpp src/qt_backend/qt_backend.hpp src/qt_backend/qt_backend.cpp include/gui.hpp src/gui.cpp)
+set(HEADRE_FILES include/gui_backend.hpp)
 
 if (QT_GUI_BACKEND)
     set(CMAKE_AUTOMOC ON)

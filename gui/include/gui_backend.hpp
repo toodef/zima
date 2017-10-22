@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <vector>
+#include <iostream>
 
 enum elements_interdependence_t{
    EP_vertical = 0,
@@ -11,55 +12,89 @@ enum elements_interdependence_t{
 };
 
 template <typename T>
-class value_object_t{
-public:
-   virtual T get_value() const = 0;
-   virtual T set_value(T value) = 0;
-
-   virtual void add_callback(std::function<void(T)> const & callback) {callbacks_.push_back(callback);}
-
-protected:
-   virtual T set_value_by_signal(T value) {
-      value_ = value;
-      return value_;
-   }
-
-   std::vector<std::function<void(T)>> callbacks_;
-
-   T value_;
-};
+class value_object_t;
+template<typename T>
+using value_object_ptr_t = std::shared_ptr<value_object_t<T>>;
 
 class value_object_float_t;
 typedef std::shared_ptr<value_object_float_t> value_object_float_ptr_t;
 class value_object_str_t;
 typedef std::shared_ptr<value_object_str_t> value_object_str_ptr_t;
 
+template <typename T>
+class value_object_t {
+public:
+   virtual T get_value() const {return value_;};
+   virtual T set_value(T value) {value_ = value; return value_;};
+
+   virtual void set_min(float value) {
+      for (auto & object: binded_objects_str_)
+         object->set_min(value);
+   }
+   virtual void set_max(float value) {
+      for (auto & object: binded_objects_str_)
+         object->set_max(value);
+   }
+
+   virtual void add_callback(std::function<void(T)> const & callback) {callbacks_.push_back(callback);}
+
+   virtual T set_value_by_signal(T value) {
+      value_ = value;
+      return value_;
+   }
+
+protected:
+   std::vector<std::function<void(T)>> callbacks_;
+
+   std::vector<value_object_str_ptr_t> binded_objects_str_;
+   std::vector<value_object_float_ptr_t> binded_objects_float_;
+
+   T value_;
+};
+
+class value_object_str_t: public value_object_t<std::string> {
+public:
+    virtual void bind_object(value_object_str_ptr_t const & object) {
+        binded_objects_str_.push_back(object);
+    }
+
+    virtual void bind_object(value_object_float_ptr_t const & object) {
+        binded_objects_float_.push_back(object);
+    }
+};
+
 class value_object_float_t: public value_object_t<float> {
 public:
    virtual void bind_object(value_object_float_ptr_t const & object){
-      object->add_callback([this](float val){this->set_value_by_signal(val);});
+       binded_objects_float_.push_back(object);
+   }
+
+   virtual void bind_object(value_object_str_ptr_t const & object){
+      binded_objects_str_.push_back(object);
    }
 };
 
-class value_object_str_t: public value_object_t<float> {
-public:
-   virtual void bind_object(value_object_str_ptr_t const & object){
-      object->add_callback([this](float val){this->set_value_by_signal(val);});
-   }
+enum line_edit_content_type_t{
+    LE_double = 0,
+    LE_int
 };
 
 class line_edit_t: public value_object_str_t {
 public:
    virtual void set_label(std::string const & label) = 0;
-   virtual void set_value(std::string const & value) = 0;
-
-   virtual std::string get_value_s() const  = 0;
-   virtual float get_value_f() const = 0;
+   virtual void set_content_type(line_edit_content_type_t content_type) = 0;
 
    virtual void * instance() const = 0;
 };
 
 typedef std::shared_ptr<line_edit_t> line_edit_ptr_t;
+
+class track_bar_t: public value_object_float_t {
+public:
+    virtual void * instance() = 0;
+};
+
+typedef std::shared_ptr<track_bar_t> track_bar_ptr_t;
 
 class gl_layout_t{
 public:
@@ -80,21 +115,6 @@ protected:
 };
 
 typedef std::shared_ptr<gl_layout_t> gl_layout_ptr_t;
-
-class track_bar_t: public value_object_t<float>{
-public:
-   virtual void set_min(float value) = 0;
-   virtual void set_max(float value) = 0;
-
-//   virtual float get_value() const = 0;
-//   virtual float set_value(float value) = 0;
-
-//   virtual void set_callback(std::function<void(float)> const & callback) = 0;
-
-   virtual void * instance() = 0;
-};
-
-typedef std::shared_ptr<track_bar_t> track_bar_ptr_t;
 
 enum window_side_t{
    WS_left = 0,

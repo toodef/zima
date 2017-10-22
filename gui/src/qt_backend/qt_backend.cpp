@@ -116,7 +116,7 @@ dock_window_ptr_t qt_main_window_t::add_dock_window(std::string const &title, wi
 
 void * qt_main_window_t::instance()
 {
-   return &window_;
+   return & window_;
 }
 
 void qt_main_window_t::show()
@@ -162,6 +162,8 @@ qt_line_edit_t::qt_line_edit_t(std::string const & label, std::string const & de
    init_layout(placement);
    set_label(label);
    set_value(default_value);
+
+   layout_->addWidget((QWidget *)connector_.instance());
 }
 
 qt_line_edit_t::qt_line_edit_t(std::string const & label, int default_value, elements_interdependence_t placement):
@@ -195,20 +197,42 @@ void qt_line_edit_t::set_label(std::string const & label)
    layout_->addWidget(&text_layout_);
 }
 
-void qt_line_edit_t::set_value(std::string const & value)
+std::string qt_line_edit_t::set_value(std::string value)
 {
-   line_edit_.setText(value.c_str());
-   layout_->addWidget(&line_edit_);
+   return connector_.set_value(value);
 }
 
-std::string qt_line_edit_t::get_value_s() const
+std::string qt_line_edit_t::get_value() const
 {
-   return line_edit_.text().toStdString();
+   return connector_.get_value();
 }
 
-float qt_line_edit_t::get_value_f() const
-{
-   return std::stof(get_value_s());
+std::string qt_line_edit_t::set_value_by_signal(std::string value) {
+   return connector_.set_value_by_signal(value);
+}
+
+void qt_line_edit_t::add_callback(std::function<void(std::string)> const &callback) {
+   connector_.add_callback(callback);
+}
+
+void qt_line_edit_t::bind_object(value_object_str_ptr_t const & object) {
+   connector_.bind_object(object);
+}
+
+void qt_line_edit_t::bind_object(value_object_float_ptr_t const & object) {
+   connector_.bind_object(object);
+}
+
+void qt_line_edit_t::set_min(float value) {
+   connector_.set_min(value);
+}
+
+void qt_line_edit_t::set_max(float value) {
+   connector_.set_max(value);
+}
+
+void qt_line_edit_t::set_content_type(line_edit_content_type_t content_type) {
+   connector_.set_content_type(content_type);
 }
 
 qt_gl_layout_t::qt_gl_layout_t():
@@ -291,75 +315,220 @@ void qt_gl_layout_t::redraw()
    update();
 }
 
+/***************************
+ * qt_track_bar_connector_t methods
+ ***************************/
+
 qt_track_bar_connector_t::qt_track_bar_connector_t():
      layout_(std::make_shared<QHBoxLayout>())
-   , value_(0)
-   , is_value_canged_inside_(false)
+   , is_value_changed_inside_(false)
    , min_(0), max_(1)
 {
+   value_ = 0;
    layout_->addWidget(this);
    connect(this, SIGNAL(valueChanged(int)), this, SLOT(set_value_slot(int)));
    setMinimum(0);
 }
 
-void qt_track_bar_connector_t::set_min(float value) {min_ = value;}
-void qt_track_bar_connector_t::set_max(float value) {max_ = value;}
+void qt_track_bar_connector_t::set_min(float value) {
+   min_ = value;
+
+   is_value_changed_inside_ = value_ >= min_;
+   setValue(value_to_slider_space(value_));
+   is_value_changed_inside_ = false;
+
+   value_object_float_t::set_min(value);
+}
+
+void qt_track_bar_connector_t::set_max(float value) {
+   max_ = value;
+
+   is_value_changed_inside_ = value_ <= max_;
+   set_value(value_);
+   is_value_changed_inside_ = false;
+
+   value_object_float_t::set_max(value);
+}
 
 void qt_track_bar_connector_t::resizeEvent(QResizeEvent * event)
 {
-   if (size().height() < 1)
+   if (size().height() < 1){
+      is_value_changed_inside_ = true;
       return;
+   }
 
-   is_value_canged_inside_ = true;
+   is_value_changed_inside_ = true;
    setMaximum(size().height());
-   is_value_canged_inside_ = false;
-
-   set_value(value_);
+   setValue(value_to_slider_space(value_));
+   is_value_changed_inside_ = false;
 }
 
-float qt_track_bar_connector_t::get_value() const
-{
-   return value_;
-}
-
-void * qt_track_bar_connector_t::instance()
-{
+void * qt_track_bar_connector_t::instance() {
    return layout_.get();
 }
 
-float qt_track_bar_connector_t::set_value(float value)
-{
+float qt_track_bar_connector_t::set_value(float value) {
    value_ = value > max_ ? max_ : (value < min_ ? min_ : value);
 
-   is_value_canged_inside_ = true;
+   is_value_changed_inside_ = true;
    setValue(value_to_slider_space(value_));
-   is_value_canged_inside_ = false;
+   is_value_changed_inside_ = false;
+
+   for (auto & callback: callbacks_)
+      callback(value_);
+
+   for (auto & object: binded_objects_float_)
+      object->set_value_by_signal(value_);
+
+   try {
+      std::string str_val = std::to_string(value_);
+      for (auto & object: binded_objects_str_){
+         object->set_value_by_signal(str_val);
+      }
+   }
+   catch(...){}
 
    return value_;
 }
 
-void qt_track_bar_connector_t::set_callback(std::function<void(float)> const & callback)
-{
-   callback_ = callback;
-}
-
-void qt_track_bar_connector_t::set_value_slot(int value)
-{
-   if (is_value_canged_inside_) return;
-
-   value_ = value_from_slider_space(value);
-   callback_(value_);
-}
-
-float qt_track_bar_connector_t::value_from_slider_space(int value) const
-{
+float qt_track_bar_connector_t::value_from_slider_space(int value) const {
    return min_ + (max_ - min_) * ((float)value / (float)size().height());
 }
 
-int qt_track_bar_connector_t::value_to_slider_space(float value) const
-{
-   return static_cast<int>(size().height() * (value_ / (max_ - min_)));
+int qt_track_bar_connector_t::value_to_slider_space(float value) const {
+   return static_cast<int>(size().height() * ((value - min_) / (max_ - min_)));
 }
+
+float qt_track_bar_connector_t::set_value_by_signal(float value) {
+   value_ = value;
+
+   if (value_ < min_ || value_ > max_)
+      return set_value(value_);
+
+   is_value_changed_inside_ = true;
+   setValue(value_to_slider_space(value_));
+   is_value_changed_inside_ = false;
+
+   for (auto & callback: callbacks_)
+      callback(value_);
+
+   return value;
+}
+
+void qt_track_bar_connector_t::set_value_slot(int value) {
+   if (is_value_changed_inside_) return;
+
+   set_value(value_from_slider_space(value));
+}
+
+/***************************
+ * qt_line_edit_connector_t methods
+ ***************************/
+
+qt_line_edit_connector_t::qt_line_edit_connector_t():
+        is_value_changed_inside_(false)
+{
+   connect(this, SIGNAL(textChanged(const QString &)), this, SLOT(set_value_slot(const QString &)));
+}
+
+std::string qt_line_edit_connector_t::set_value(std::string value) {
+   setText(value.c_str());
+
+   return value;
+}
+
+void * qt_line_edit_connector_t::instance() {
+   return this;
+}
+
+std::string qt_line_edit_connector_t::set_value_by_signal(std::string value) {
+   value_ = value;
+
+   is_value_changed_inside_ = true;
+   setText(value_.c_str());
+   is_value_changed_inside_ = false;
+
+   for (auto & callback: callbacks_)
+      callback(value_);
+
+   return value;
+}
+
+void qt_line_edit_connector_t::set_value_slot(const QString & value) {
+   if (is_value_changed_inside_) return;
+
+   QString to_check = value;
+   int cursor = cursorPosition();
+   if (validator_) {
+      auto res = validator_->validate(to_check, cursor);
+
+      if (res == QValidator::State::Intermediate || res == QValidator::State::Invalid){
+         is_value_changed_inside_ = true;
+         setText(value_.c_str());
+         is_value_changed_inside_ = false;
+
+         return;
+      }
+   }
+
+   value_ = value.toStdString();
+
+   for (auto & callback: callbacks_)
+      callback(value_);
+
+   for (auto & object: binded_objects_str_)
+      object->set_value_by_signal(value_);
+
+   try {
+      float float_val = std::stof(value_);
+      for (auto & object: binded_objects_float_)
+         object->set_value_by_signal(float_val);
+   }
+   catch(...){}
+}
+
+void qt_line_edit_connector_t::set_content_type(line_edit_content_type_t content_type) {
+   content_type_ = content_type;
+
+   switch (content_type){
+      case LE_int:
+         validator_ = std::make_unique<QIntValidator>(this);
+         break;
+      case LE_double:
+         validator_ = std::make_unique<QDoubleValidator>(this);
+         break;
+   }
+
+   setValidator(validator_.get());
+}
+
+void qt_line_edit_connector_t::set_min(float value) {
+   if (validator_)
+      switch (content_type_){
+      case LE_int:
+         ((QIntValidator *)validator_.get())->setBottom(static_cast<int>(value));
+          break;
+      case LE_double:
+         ((QDoubleValidator *)validator_.get())->setBottom(value);
+          break;
+      }
+}
+
+void qt_line_edit_connector_t::set_max(float value) {
+   if (validator_)
+      switch (content_type_){
+         case LE_int:
+            ((QIntValidator *)validator_.get())->setTop(static_cast<int>(value));
+              break;
+         case LE_double:
+            ((QDoubleValidator *)validator_.get())->setTop(value);
+              break;
+      }
+}
+
+/***************************
+ * qt_dock_window_t methods
+ ***************************/
 
 qt_dock_window_t::qt_dock_window_t(const std::string & title, main_window_ptr_t & parent_window) :
    dock_window_t(title, parent_window)
@@ -475,17 +644,26 @@ float qt_track_bar_t::get_value() const
 
 float qt_track_bar_t::set_value(float value)
 {
-   std::cout << "main" << std::endl;
-
    return connector_.set_value(value);
-}
-
-void qt_track_bar_t::set_callback(std::function<void(float)> const & callback)
-{
-   connector_.set_callback(callback);
 }
 
 void * qt_track_bar_t::instance()
 {
    return connector_.instance();
+}
+
+void qt_track_bar_t::add_callback(std::function<void(float)> const &callback) {
+   connector_.add_callback(callback);
+}
+
+float qt_track_bar_t::set_value_by_signal(float value) {
+   return connector_.set_value_by_signal(value);
+}
+
+void qt_track_bar_t::bind_object(const value_object_str_ptr_t &object) {
+   connector_.bind_object(object);
+}
+
+void qt_track_bar_t::bind_object(value_object_float_ptr_t const &object) {
+   connector_.bind_object(object);
 }

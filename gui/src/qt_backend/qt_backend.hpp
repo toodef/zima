@@ -13,12 +13,39 @@
 #include <QtWidgets/QFileDialog>
 #include <QAction>
 #include <QMenu>
+#include <QValidator>
 
 #include <stack>
 
-#include "src/gui_backend.hpp"
+#include "include/gui_backend.hpp"
 
 typedef std::shared_ptr<QBoxLayout> layout_ptr_t;
+
+class qt_line_edit_connector_t: public QLineEdit, public value_object_str_t {
+Q_OBJECT
+
+public:
+    qt_line_edit_connector_t();
+
+    void set_content_type(line_edit_content_type_t content_type);
+
+    std::string set_value(std::string value) override;
+
+    void * instance();
+
+    std::string set_value_by_signal(std::string value) override;
+
+    void set_min(float value);
+    void set_max(float value);
+
+private:
+    bool is_value_changed_inside_;
+    std::unique_ptr<QValidator> validator_;
+    line_edit_content_type_t content_type_;
+
+private slots:
+    void set_value_slot(const QString & value);
+};
 
 class qt_line_edit_t: public line_edit_t {
 public:
@@ -27,21 +54,61 @@ public:
    qt_line_edit_t(std::string const & label, float default_value, elements_interdependence_t placement = EP_vertical);
    qt_line_edit_t(std::string const & label, double default_value, elements_interdependence_t placement = EP_vertical);
 
-   void set_label(std::string const & label) override;
-   void set_value(std::string const & value) override ;
+   void set_content_type(line_edit_content_type_t content_type);
 
-   std::string get_value_s() const override ;
-   float get_value_f() const override;
+   void set_label(std::string const & label) override;
+   std::string set_value(std::string value) override;
+
+   std::string get_value() const override;
+
+   void add_callback(std::function<void(std::string)> const & callback) override;
+   void bind_object(value_object_str_ptr_t const & object) override;
+   void bind_object(value_object_float_ptr_t const & object) override;
+   void set_min(float value) override;
+   void set_max(float value) override;
 
    void * instance() const override;
+
+   std::string set_value_by_signal(std::string value) override;
 
 private:
    void init_layout(elements_interdependence_t placement);
 
 private:
    layout_ptr_t layout_;
-   QLineEdit line_edit_;
    QLabel text_layout_;
+
+   qt_line_edit_connector_t connector_;
+};
+
+class qt_track_bar_connector_t: private QSlider, public value_object_float_t {
+Q_OBJECT
+
+public:
+    qt_track_bar_connector_t();
+
+    void set_min(float value);
+    void set_max(float value);
+
+    float set_value(float value) override;
+
+    void * instance();
+
+    float set_value_by_signal(float value) override;
+
+private:
+    void resizeEvent(QResizeEvent * event) override;
+
+    int value_to_slider_space(float value) const;
+    float value_from_slider_space(int value) const;
+
+    float min_, max_;
+    bool is_value_changed_inside_;
+
+    layout_ptr_t layout_;
+
+private slots:
+    void set_value_slot(int value);
 };
 
 class qt_track_bar_t: public track_bar_t {
@@ -54,7 +121,11 @@ public:
    float get_value() const override;
    float set_value(float value) override;
 
-   void set_callback(std::function<void(float)> const & callback) override;
+   float set_value_by_signal(float value) override;
+
+   void add_callback(std::function<void(float)> const & callback) override;
+   void bind_object(value_object_str_ptr_t const & object) override;
+   void bind_object(value_object_float_ptr_t const & object) override;
 
    void * instance() override;
 
@@ -66,7 +137,7 @@ class qt_gl_layout_t: public gl_layout_t, QGLWidget{
 public:
    qt_gl_layout_t();
 
-   void redraw();
+   void redraw() override;
 
    void * instance() const override;
 
@@ -84,39 +155,6 @@ private:
 
    bool is_moved_;
    QPoint intermediate_pos_;
-};
-
-class qt_track_bar_connector_t: private QSlider{
-   Q_OBJECT
-
-public:
-   qt_track_bar_connector_t();
-
-   void set_min(float value);
-   void set_max(float value);
-
-   float get_value() const;
-   float set_value(float value);
-
-   void set_callback(std::function<void(float)> const & callback);
-
-   void * instance();
-
-private:
-   void resizeEvent(QResizeEvent * event) override;
-
-   int value_to_slider_space(float value) const;
-   float value_from_slider_space(int value) const;
-
-   float value_, min_, max_;
-   bool is_value_canged_inside_;
-
-   layout_ptr_t layout_;
-
-   std::function<void(float)> callback_;
-
-private slots:
-   void set_value_slot(int value);
 };
 
 class qt_window_t: public window_t{
