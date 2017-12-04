@@ -227,7 +227,7 @@ private:
    std::shared_ptr<QMenu> menu_;
 };
 
-class qt_menu_action_connector_t: public QObject{
+class qt_menu_action_connector_t: public QObject {
    Q_OBJECT
 
 public:
@@ -246,8 +246,9 @@ private slots:
 
 class qt_menu_action_t: public menu_action_t {
 public:
-   explicit qt_menu_action_t(menu_ptr_t & parent_menu, std::string const & name);
+   explicit qt_menu_action_t(menu_ptr_t & parent_menu, std::string const & name, std::string const & shortcut = "");
 
+   void set_shortcut(std::string const & shortcut = "") override;
    void set_callback(std::function<void()> const & callback) override;
 
    void * instance() override;

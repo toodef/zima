@@ -579,9 +579,11 @@ menu_action_ptr_t qt_menu_t::add_menu_action(std::string const & name)
    return std::make_shared<qt_menu_action_t>(shared_from_this(), name);
 }
 
-qt_menu_action_t::qt_menu_action_t(menu_ptr_t & parent_menu, std::string const & name) : menu_action_t(parent_menu, name)
+qt_menu_action_t::qt_menu_action_t(menu_ptr_t & parent_menu, std::string const & name, std::string const & shortcut):
+      menu_action_t(parent_menu, name)
 {
    connector_.action_ = std::make_shared<QAction>(name.c_str(), ((QMenu *)parent_menu->instance()));
+   set_shortcut(shortcut);
    ((QMenu *)parent_menu->instance())->addAction(connector_.action_.get());
 }
 
@@ -593,6 +595,12 @@ void * qt_menu_action_t::instance()
 void qt_menu_action_t::set_callback(std::function<void()> const &callback)
 {
    connector_.set_callback(callback);
+}
+
+void qt_menu_action_t::set_shortcut(const std::string &shortcut)
+{
+   if (shortcut.size() > 0)
+      connector_.action_->setShortcut(QKeySequence(QString(shortcut.c_str())));
 }
 
 void qt_menu_action_connector_t::on_triggered()
@@ -624,7 +632,15 @@ void qt_file_dialog_t::set_file_types(std::vector<std::string> const & types)
 
 std::string qt_file_dialog_t::get_file()
 {
-   return file_dialog_->getOpenFileName().toStdString();
+   if (!file_dialog_)
+      return "";
+
+   QString path = file_dialog_->getOpenFileName();
+
+   if (path.size() < 1)
+      return "";
+
+   return path.toStdString();
 }
 
 void qt_track_bar_t::set_min(float value)

@@ -262,8 +262,9 @@ private:
 
 class menu_action_t: public std::enable_shared_from_this<menu_action_t> {
 public:
-   explicit menu_action_t(menu_ptr_t & parent_menu, std::string const & name){}
+   explicit menu_action_t(menu_ptr_t & parent_menu, std::string const & name, std::string const & shortcut = ""){}
 
+   virtual void set_shortcut(std::string const & shortcut = "") = 0;
    virtual void set_callback(std::function<void()> const & callback) = 0;
 
    virtual void * instance() = 0;
