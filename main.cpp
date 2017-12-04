@@ -31,8 +31,8 @@ public:
    void add_renderer(renderer_ptr_t const & renderer){
       renderer_ = renderer;
 
-      min_trackbar_->add_callback([this](float min){this->renderer_->set_min_threshold(min); this->gl_layout_->redraw();});
-      max_trackbar_->add_callback([this](float max){this->renderer_->set_max_threshold(max); this->gl_layout_->redraw();});
+      min_trackbar_->add_callback(std::bind(&color_range_t::on_min_change, this, std::placeholders::_1));
+      max_trackbar_->add_callback(std::bind(&color_range_t::on_max_change, this, std::placeholders::_1));
 
       min_trackbar_->set_max(renderer_->get_max_threshold());
       max_trackbar_->set_max(renderer_->get_max_threshold());
@@ -48,6 +48,31 @@ private:
 
    renderer_ptr_t renderer_;
    gl_layout_ptr_t gl_layout_;
+
+private:
+   void on_min_change(float val) {
+      float max_val = max_trackbar_->get_value();
+
+      if (val > max_val) {
+         min_trackbar_->set_value_by_signal(max_val);
+         val = max_val;
+      }
+
+      this->renderer_->set_min_threshold(val);
+      this->gl_layout_->redraw();
+   }
+
+   void on_max_change(float val) {
+      float min_val = min_trackbar_->get_value();
+
+      if (val < min_val) {
+         max_trackbar_->set_value_by_signal(min_val);
+         val = min_val;
+      }
+
+      this->renderer_->set_max_threshold(val);
+      this->gl_layout_->redraw();
+   }
 };
 
 typedef std::shared_ptr<color_range_t> color_range_ptr_t;
@@ -62,10 +87,12 @@ public:
 
       file_menu_ = app_->window()->add_menu_item("File");
       open_file_action_ = file_menu_->add_menu_action("Open file");
+      open_file_action_->set_shortcut("Ctrl+O");
       open_file_action_->set_callback(std::bind(&zima_t::open_file, this));
 
       view_menu_ = app_->window()->add_menu_item("View");
       color_range_action_ = view_menu_->add_menu_action("Color range");
+      color_range_action_->set_shortcut("Ctrl+T");
       color_range_action_->set_callback(std::bind(&zima_t::show_color_range, this));
 
       about_menu_ = app_->window()->add_menu_item("About");
@@ -117,11 +144,24 @@ private:
       if (!file_dialog_)
          file_dialog_ = app_->window()->add_file_dialog("Open file");
 
-      image_ = std::make_shared<zimage_t>(file_dialog_->get_file());
+      std::string path = file_dialog_->get_file();
+
+      if (path.size() < 1)
+         return;
+
+      image_ = std::make_shared<zimage_t>(path);
       renderer_->set_image(image_);
       renderer_->redraw();
+
+      if (color_range_){
+         color_range_->add_renderer(renderer_);
+      }
    }
 
+   void show_about(){
+   }
+
+private:
    gui_t & gui_;
    app_ptr_t app_;
    gl_layout_ptr_t gl_layout_;
