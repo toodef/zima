@@ -277,6 +277,8 @@ public:
    int start() override;
    main_window_ptr_t window() override;
 
+   std::pair<size_t, size_t> get_screen_size() const override;
+
 private:
    std::unique_ptr<QApplication> app_;
 };

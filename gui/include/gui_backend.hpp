@@ -286,6 +286,8 @@ public:
    virtual int start() = 0;
    virtual main_window_ptr_t window() = 0;
 
+   virtual std::pair<size_t, size_t> get_screen_size() const = 0;
+
 protected:
    main_window_ptr_t main_window_;
 };

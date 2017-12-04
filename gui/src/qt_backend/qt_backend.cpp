@@ -1,5 +1,6 @@
 #include <QVBoxLayout>
 #include <QMenuBar>
+#include <QDesktopWidget>
 
 #include <iostream>
 
@@ -36,6 +37,13 @@ int qt_app_t::start()
 main_window_ptr_t qt_app_t::window()
 {
    return main_window_;
+}
+
+std::pair<size_t, size_t> qt_app_t::get_screen_size() const
+{
+   QRect size = app_->desktop()->screenGeometry();
+
+   return std::make_pair<size_t, size_t>(size.width(), size.height());
 }
 
 qt_window_t::qt_window_t():
